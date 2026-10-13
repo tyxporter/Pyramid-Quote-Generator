@@ -883,6 +883,75 @@ $('#tabB').onclick = () => { tab = 'B'; $('#tabB').setAttribute('aria-selected',
 function renderAll() { syncFields(); renderPhases(); renderOverrides(); renderAddons(); renderHolidays(); refresh(); }
 
 /* ---------- HubSpot import ---------- */
+/* Live HubSpot retrieval: token always remains in server-only environment. */
+let hubspotRows = [];
+let hubspotAccess = '';
+const normalizeHubspotKey = x => String(x || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+function submissionAsNotification(row) {
+  const values = new Map((row.values || []).map(v => [normalizeHubspotKey(v.name), String(v.value ?? '')]));
+  const take = (...aliases) => {
+    for (const alias of aliases) { const value = values.get(normalizeHubspotKey(alias)); if (value) return value; }
+    return '';
+  };
+  const vague = (...parts) => {
+    for (const [key, value] of values) if (parts.every(part => key.includes(part)) && value) return value;
+    return '';
+  };
+  const city = take('community_city','community city','city');
+  const state = take('community_state_region','community state/region','state','state_region') || vague('community','state');
+  const zip = take('zip','zip_code','zipcode','postalcode','community_zip','community_zip_code');
+  const lines = [
+    ['First Name', take('firstname','first_name')],
+    ['Last name', take('lastname','last_name')],
+    ['Email', take('email')],
+    ['Phone Number', take('phone','phone_number','phonenumber')],
+    ['Community Name', take('community_name','communityname','name_of_community') || vague('community','name')],
+    ['Property Management Company Name', take('property_management_company_name','propertymanagementcompanyname') || vague('management','company')],
+    ['Community Address', take('community_address','communityaddress') || vague('community','address')],
+    ['Community City', city],
+    ['Community State/Region', [state,zip].filter(Boolean).join(' ')],
+    ['How many pools', take('how_many_pools','number_of_pools','howmanypools') || vague('pools')],
+    ['Desired Start Date', take('desired_start_date','desiredstartdate') || vague('desired','start')],
+    ['Desired End Date', take('desired_end_date','desiredenddate') || vague('desired','end')],
+    ['Provide a description of the days and hours from Monday through Sunday.',
+      take('requested_hours','service_hours') || vague('description','days') || vague('hours','service')],
+  ];
+  return lines.map(([name, value]) => name + '\n' + value).join('\n') + '\nView submission in HubSpot';
+}
+$('#btnLiveHubspot').onclick = () => { $('#hubspotLiveModal').hidden = false; };
+$('#hubspotLiveCancel').onclick = () => { $('#hubspotLiveModal').hidden = true; };
+$('#hubspotRefresh').onclick = async () => {
+  const msg = $('#hubspotLiveMsg');
+  if (!hubspotAccess) {
+    hubspotAccess = window.prompt('Enter the Pyramid quote app access key (NOT your HubSpot password or token):') || '';
+    if (!hubspotAccess) return;
+  }
+  msg.textContent = 'Loading HubSpot submissions…';
+  try {
+    const response = await fetch('/api/submissions?form=' + encodeURIComponent($('#hubspotForm').value), {
+      method:'GET', headers:{'x-quote-admin-key':hubspotAccess}, credentials:'same-origin', cache:'no-store'
+    });
+    if (response.status === 401) hubspotAccess = '';
+    if (!response.ok) throw new Error(response.status === 503 ? 'Server connection not configured.' : 'Request failed (' + response.status + ').');
+    const data = await response.json();
+    hubspotRows = Array.isArray(data.results) ? data.results : [];
+    const sel = $('#hubspotPick'); sel.replaceChildren(new Option('Choose a submission…',''));
+    hubspotRows.forEach((entry, i) => {
+      const label = (entry.values || []).find(v => normalizeHubspotKey(v.name) === 'email');
+      const stamp = entry.submittedAt ? new Date(entry.submittedAt).toLocaleDateString() : 'Date unavailable';
+      sel.add(new Option(stamp + ' · ' + (label ? label.value : 'Submission ' + (i+1)),String(i)));
+    });
+    msg.textContent = hubspotRows.length + ' submissions loaded. Nothing has been modified in HubSpot.';
+  } catch (e) { msg.textContent = 'Unable to load: ' + e.message; }
+};
+$('#hubspotUse').onclick = () => {
+  const idx = $('#hubspotPick').value;
+  if (!idx || !hubspotRows[Number(idx)]) { $('#hubspotLiveMsg').textContent = 'Select a submission.'; return; }
+  $('#hsText').value = submissionAsNotification(hubspotRows[Number(idx)]);
+  $('#hubspotLiveModal').hidden = true;
+  $('#hsGo').click();
+  toast('HubSpot submission imported. Verify all fields, service dates, rate, staffing and schedule before exporting.', 7000);
+};
 $('#btnImport').onclick = () => { $('#hsModal').hidden = false; $('#hsMsg').textContent = ''; $('#hsMsg').className = 'msg'; $('#hsText').focus(); };
 $('#hsCancel').onclick = () => { $('#hsModal').hidden = true; };
 $('#hsGo').onclick = () => {

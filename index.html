@@ -885,7 +885,7 @@ function renderAll() { syncFields(); renderPhases(); renderOverrides(); renderAd
 /* ---------- HubSpot import ---------- */
 /* Live HubSpot retrieval: token always remains in server-only environment. */
 let hubspotRows = [];
-let hubspotAccess = '';
+
 const normalizeHubspotKey = x => String(x || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 function submissionAsNotification(row) {
   const values = new Map((row.values || []).map(v => [normalizeHubspotKey(v.name), String(v.value ?? '')]));
@@ -922,17 +922,13 @@ $('#btnLiveHubspot').onclick = () => { $('#hubspotLiveModal').hidden = false; };
 $('#hubspotLiveCancel').onclick = () => { $('#hubspotLiveModal').hidden = true; };
 $('#hubspotRefresh').onclick = async () => {
   const msg = $('#hubspotLiveMsg');
-  if (!hubspotAccess) {
-    hubspotAccess = window.prompt('Enter the Pyramid quote app access key (NOT your HubSpot password or token):') || '';
-    if (!hubspotAccess) return;
-  }
   msg.textContent = 'Loading HubSpot submissions…';
   try {
     const response = await fetch('/api/submissions?form=' + encodeURIComponent($('#hubspotForm').value), {
-      method:'GET', headers:{'x-quote-admin-key':hubspotAccess}, credentials:'same-origin', cache:'no-store'
+      method:'GET', credentials:'same-origin', cache:'no-store'
     });
-    if (response.status === 401) hubspotAccess = '';
-    if (!response.ok) throw new Error(response.status === 503 ? 'Server connection not configured.' : 'Request failed (' + response.status + ').');
+
+    if (!response.ok) throw new Error(response.status === 503 ? 'HubSpot token is not configured on this Quote Builder project.' : response.status === 403 ? 'Open an authenticated Preview deployment of the Quote Builder.' : 'Request failed (' + response.status + ').');
     const data = await response.json();
     hubspotRows = Array.isArray(data.results) ? data.results : [];
     const sel = $('#hubspotPick'); sel.replaceChildren(new Option('Choose a submission…',''));

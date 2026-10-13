@@ -23,7 +23,7 @@ export default async function handler(req, res) {
   if (!token) return res.status(503).json({error:'HubSpot integration not configured'});
   const form = String(req.query.form || "2026");
   if (!Object.hasOwn(FORMS,form)) return res.status(400).json({error:'Unsupported quote form'});
-  const limit = Math.max(1, Math.min(50, Number(req.query.limit) || 30));
+  const limit = Math.max(1, Math.min(50, Number(req.query.limit) || 50));
   const offset = Math.max(0, Math.min(1000, Number(req.query.offset) || 0));
   const guid = FORMS[form];
   const url = new URL(`https://api.hubapi.com/form-integrations/v1/submissions/forms/${guid}`);

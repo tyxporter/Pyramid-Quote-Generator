@@ -1,27 +1,26 @@
 // Server-only, read-only bridge for two explicitly allowed Pyramid HubSpot quote forms.
-// Configure HUBSPOT_PRIVATE_APP_TOKEN and QUOTE_ADMIN_KEY in Vercel server environment.
-import { timingSafeEqual } from 'node:crypto';
+// Configure HUBSPOT_PRIVATE_APP_TOKEN in Vercel Preview; access is protected by Vercel Authentication.
+
 
 const FORMS = Object.freeze({
   '2026': '2c971242-d2df-4eaa-8acd-7a9b89eeddca',
   '2025': '49e1ff28-3101-42db-91a3-8230d0587788',
 });
 
-function sameSecret(a, b) {
-  if (typeof a !== 'string' || typeof b !== 'string' || !a || !b) return false;
-  const left = Buffer.from(a, 'utf8');
-  const right = Buffer.from(b, 'utf8');
-  return left.length === right.length && timingSafeEqual(left, right);
-}
 
 export default async function handler(req, res) {
   res.setHeader('Cache-Control', 'private, no-store, max-age=0');
   res.setHeader('X-Content-Type-Options', 'nosniff');
   if (req.method !== 'GET') { res.setHeader('Allow', 'GET'); return res.status(405).json({error:'Method not allowed'}); }
+  // Access to Preview deployments is controlled by Vercel Authentication at the edge.
+  // The HubSpot API is deliberately unavailable on production and custom domains.
+  const host = String(req.headers?.host || '').toLowerCase().replace(/:\d+$/, '');
+  const knownPreview = /^pyramid-quote-builder-[a-z0-9]+-porter-made\.vercel\.app$/.test(host);
+  if (process.env.VERCEL_ENV !== 'preview' || !knownPreview) {
+    return res.status(403).json({error:'Available only through a protected Pyramid Quote Builder preview'});
+  }
   const token = process.env.HUBSPOT_PRIVATE_APP_TOKEN;
-  const key = process.env.QUOTE_ADMIN_KEY;
-  if (!token || !key || key.length < 20) return res.status(503).json({error:'Integration not configured'});
-  if (!sameSecret(req.headers['x-quote-admin-key'], key)) return res.status(401).json({error:'Unauthorized'});
+  if (!token) return res.status(503).json({error:'HubSpot integration not configured'});
   const form = String(req.query.form || "2026");
   if (!Object.hasOwn(FORMS,form)) return res.status(400).json({error:'Unsupported quote form'});
   const limit = Math.max(1, Math.min(50, Number(req.query.limit) || 30));

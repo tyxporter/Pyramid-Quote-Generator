@@ -618,6 +618,8 @@ function splitStateZip(s) {
 function fmtPhone(p) { let d = String(p || '').replace(/\D/g, ''); if (d.length === 11 && d[0] === '1') d = d.slice(1); return d.length === 10 ? d.slice(0, 3) + '-' + d.slice(3, 6) + '-' + d.slice(6) : String(p || ''); }
 function looseDateKey(s) {
   s = String(s || '').trim(); if (!s) return '';
+  if (/^\d{13}$/.test(s)) { const d = new Date(Number(s)); return isNaN(d.getTime()) ? '' : d.toISOString().slice(0, 10); }
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) { const d = new Date(s + 'T00:00:00Z'); return !isNaN(d.getTime()) && d.toISOString().slice(0, 10) === s ? s : ''; }
   const d = new Date(s); if (isNaN(d.getTime())) return '';
   return keyOf(d.getFullYear(), d.getMonth() + 1, d.getDate());
 }
@@ -907,14 +909,16 @@ function submissionAsNotification(row) {
     ['Phone Number', take('phone','phone_number','phonenumber')],
     ['Community Name', take('community_name','communityname','name_of_community') || vague('community','name')],
     ['Property Management Company Name', take('property_management_company_name','propertymanagementcompanyname') || vague('management','company')],
-    ['Community Address', take('community_address','communityaddress') || vague('community','address')],
+    ['Community Address', take('address','community_address','communityaddress') || vague('community','address')],
     ['Community City', city],
     ['Community State/Region', [state,zip].filter(Boolean).join(' ')],
     ['How many pools', take('how_many_pools','number_of_pools','howmanypools') || vague('pools')],
-    ['Desired Start Date', take('desired_start_date','desiredstartdate') || vague('desired','start')],
-    ['Desired End Date', take('desired_end_date','desiredenddate') || vague('desired','end')],
+    ['Desired Start Date', looseDateKey(take('desired_start_date','desiredstartdate') || vague('desired','start'))],
+    ['Desired End Date', looseDateKey(take('desired_end_date','desiredenddate') || vague('desired','end'))],
+    ['In addition to pool monitoring (select all that apply)', take('add_on_services') || vague('add','services')],
+    ['Select which days service is needed and hours/day.', take('select_which_days_service_is_being_requested') || vague('select','days')],
     ['Provide a description of the days and hours from Monday through Sunday.',
-      take('requested_hours','service_hours') || vague('description','days') || vague('hours','service')],
+      take('days_and_hours_services_are_being_requested','requested_hours','service_hours') || vague('description','days') || vague('hours','service')],
   ];
   return lines.map(([name, value]) => name + '\n' + value).join('\n') + '\nView submission in HubSpot';
 }

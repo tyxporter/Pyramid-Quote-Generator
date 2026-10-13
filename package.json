@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "test": "node --test tests/quote-engine.test.mjs",
+    "test": "node --test tests/quote-engine.test.mjs tests/hubspot-api.test.mjs",
     "test:exports": "node --test tests/export-regression.test.mjs",
     "test:all": "npm run test && npm run test:exports"
   },

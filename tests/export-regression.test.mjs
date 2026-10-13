@@ -8,7 +8,7 @@ import { once } from 'node:events';
 import { createRequire } from 'node:module';
 import { chromium } from 'playwright';
 import ExcelJS from 'exceljs';
-import pdfParse from 'pdf-parse';
+import pdfParse from 'pdf-parse/lib/pdf-parse.js';
 const require = createRequire(import.meta.url);
 const html = readFileSync(new URL('../index.html', import.meta.url));
 const fakeLogo = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+j5T8AAAAASUVORK5CYII=', 'base64');

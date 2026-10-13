@@ -1,0 +1,29 @@
+name: Quote Builder Regression
+on:
+  push:
+    branches:
+      - 'recovery/**'
+  pull_request:
+    branches:
+      - main
+permissions:
+  contents: read
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+      - name: Install reviewed test dependencies
+        run: npm install --no-audit --no-fund --no-package-lock
+      - name: Install headless Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Validate quote engine and API authorization
+        run: npm run test
+      - name: Validate PDF and Excel exports in a real browser
+        run: npm run test:exports

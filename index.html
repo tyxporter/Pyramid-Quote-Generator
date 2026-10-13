@@ -1,0 +1,1191 @@
+<!doctype html>
+<html lang="en">
+<head>
+<title>Pyramid Quote Builder</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<link rel="icon" href="https://pyramid-quote-builder.vercel.app/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: sticky toolbar; intake form (left) feeds a live, paper-accurate preview of Attachments A and B (right). */
+:root{
+  --bg:#eef2f5; --surface:#ffffff; --surface-2:#f6f8fa; --line:#d8e0e6; --line-2:#e8edf1;
+  --ink:#16222c; --muted:#5d6b77; --faint:#8a97a2;
+  --blue:#1d93d9; --blue-ink:#0d6aa3; --blue-soft:#e3f2fb; --orange:#e8731a; --orange-soft:#fdf0e4;
+  --ok:#17804a; --ok-soft:#e5f5ec; --warn:#9a5b00; --warn-soft:#fff4e0; --bad:#b23a3a; --bad-soft:#fdeaea;
+  --paper:#ffffff; --paper-ink:#111111; --paper-line:#000000; --paper-grey:#d9d9d9; --paper-light:#f2f2f2;
+  --paper-orange:#e36c09; --paper-peach:#fce5cd; --paper-blue:#cfe2f3; --paper-val:#efefef; --paper-link:#1155cc;
+  --shadow:0 1px 2px rgba(18,40,60,.06),0 8px 24px rgba(18,40,60,.07);
+  --f-ui:"Archivo",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-num:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --f-sheet:Tahoma,Verdana,"DejaVu Sans",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f161c; --surface:#17212a; --surface-2:#1c2832; --line:#2c3a46; --line-2:#24313c;
+  --ink:#e6edf2; --muted:#9fb0bd; --faint:#7b8c99;
+  --blue:#43aef0; --blue-ink:#8fd0fa; --blue-soft:#14324a; --orange:#f08a3a; --orange-soft:#3a2614;
+  --ok:#5fd18f; --ok-soft:#173326; --warn:#f2b35c; --warn-soft:#3a2b12; --bad:#f08484; --bad-soft:#3d1c1c;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f161c; --surface:#17212a; --surface-2:#1c2832; --line:#2c3a46; --line-2:#24313c;
+  --ink:#e6edf2; --muted:#9fb0bd; --faint:#7b8c99;
+  --blue:#43aef0; --blue-ink:#8fd0fa; --blue-soft:#14324a; --orange:#f08a3a; --orange-soft:#3a2614;
+  --ok:#5fd18f; --ok-soft:#173326; --warn:#f2b35c; --warn-soft:#3a2b12; --bad:#f08484; --bad-soft:#3d1c1c;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25); color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:14px/1.45 var(--f-ui)}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:30;background:var(--surface);border-bottom:1px solid var(--line)}
+.bar-in{max-width:1560px;margin:0 auto;padding-block:10px;padding-inline:16px;display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px}
+.brand{display:flex;align-items:center;gap:12px;min-width:0}
+.brand-logo{background:#fff;border-radius:8px;padding:6px 10px;display:flex}
+.brand-logo img{width:150px;height:auto;display:block}
+.brand b{display:block;font-size:13px;letter-spacing:.08em;text-transform:uppercase}
+.brand span{display:block;font-size:12px;color:var(--muted)}
+.actions{margin-left:auto;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:8px 12px;font-weight:600;font-size:13px;white-space:nowrap}
+.btn:hover{border-color:var(--faint)}
+.btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}
+.btn.accent{background:var(--orange);border-color:var(--orange);color:#fff}
+.btn.quiet{background:var(--surface-2)}
+.btn.sm{padding:5px 9px;font-size:12px}
+.btn.danger{color:var(--bad)}
+.btn:disabled{opacity:.5;cursor:default}
+.sep{width:1px;height:26px;background:var(--line)}
+
+.shell{max-width:1560px;margin:0 auto;padding-block:18px 40px;padding-inline:16px;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:18px;align-items:start}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);min-width:0}
+.sec{padding:18px 20px;border-bottom:1px solid var(--line-2)}
+.sec:last-child{border-bottom:0}
+.sec-h{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:12px}
+.sec-h h2{margin:0;font-size:15px;font-weight:700;text-wrap:balance}
+.sec-h p{margin:2px 0 0;color:var(--muted);font-size:12.5px;max-width:62ch}
+.grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:10px 12px}
+.c3{grid-column:span 3}.c4{grid-column:span 4}.c5{grid-column:span 5}.c6{grid-column:span 6}.c8{grid-column:span 8}.c12{grid-column:span 12}
+.fld label{display:block;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin:0 0 4px}
+.fld input,.fld select,.fld textarea,.cellin{width:100%;border:1px solid var(--line);border-radius:7px;padding:7px 9px;background:var(--surface);min-width:0}
+.fld textarea{min-height:58px;resize:vertical}
+.fld input:disabled{background:var(--surface-2);color:var(--muted)}
+.hint{font-size:11.5px;color:var(--muted);margin-top:4px}
+.chk{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted);font-weight:600}
+.chk input{width:15px;height:15px;accent-color:var(--blue)}
+
+.phase{border:1px solid var(--line);border-radius:10px;background:var(--surface-2);padding:12px;margin-top:10px}
+.phase-top{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) minmax(0,1fr) minmax(0,1.2fr) auto;gap:8px;align-items:end}
+.quick{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 6px}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:3px 10px;font-size:12px;font-weight:600;color:var(--muted)}
+.chip:hover{color:var(--ink)}
+.days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+.dayc{border:1px solid var(--line);border-radius:8px;background:var(--surface);padding:7px;display:grid;gap:5px;min-width:0}
+.dayc.off{opacity:.55}
+.dayc .dn{display:flex;align-items:center;gap:6px;font-weight:700;font-size:12px}
+.dayc input[type=time],.dayc input[type=number]{width:100%;border:1px solid var(--line);border-radius:6px;padding:4px 5px;font-size:12px;background:var(--surface);min-width:0}
+.dayc .dh{font:500 11px var(--f-num);color:var(--muted)}
+.mini{font-size:10px;color:var(--faint);text-transform:uppercase;letter-spacing:.05em}
+
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);text-align:left;padding:4px 6px;font-weight:700}
+.tbl td{padding:4px 6px;vertical-align:middle}
+.tbl .cellin{padding:5px 7px;font-size:13px}
+.scroll{overflow-x:auto}
+.empty{color:var(--muted);font-size:12.5px;padding:6px 2px}
+
+.out{position:sticky;top:76px;max-height:calc(100vh - 92px);overflow:auto}
+.hero{padding:16px 18px;border-bottom:1px solid var(--line-2);display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px 16px;align-items:flex-start}
+.hero .k{font-size:11px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);font-weight:700}
+.hero h2{margin:2px 0 2px;font-size:20px;text-wrap:balance}
+.hero p{margin:0;color:var(--muted);font-size:12.5px}
+.pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:4px 10px;font-size:12px;font-weight:700}
+.pill.ok{background:var(--ok-soft);color:var(--ok)}.pill.warn{background:var(--warn-soft);color:var(--warn)}.pill.bad{background:var(--bad-soft);color:var(--bad)}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--line-2);border-bottom:1px solid var(--line-2)}
+.kpi{background:var(--surface);padding:12px 14px;min-width:0}
+.kpi span{display:block;font-size:11px;color:var(--muted);font-weight:600}
+.kpi b{display:block;font:600 17px var(--f-num);margin-top:2px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.kpi.lead b{color:var(--blue-ink)}
+.review{padding:12px 18px;border-bottom:1px solid var(--line-2);font-size:12.5px}
+.review ul{margin:6px 0 0;padding-left:18px}
+.review li{margin:3px 0}
+.review li.e{color:var(--bad)}
+.review li.w{color:var(--warn)}
+.tabs{display:flex;gap:4px;padding:8px 14px 0;border-bottom:1px solid var(--line-2)}
+.tab{border:0;background:none;padding:8px 10px;font-weight:700;font-size:13px;color:var(--muted);border-bottom:2px solid transparent}
+.tab[aria-selected=true]{color:var(--blue-ink);border-color:var(--blue)}
+.stage{padding:14px;background:var(--surface-2)}
+.paper{background:var(--paper);color:var(--paper-ink);padding:18px 16px 22px;border:1px solid var(--line);box-shadow:var(--shadow);min-width:560px}
+.paper-logo{display:block;width:62%;margin:0 auto 8px}
+
+/* Sheet replica (matches Pyramid quote PDFs) */
+.sheet{width:100%;border-collapse:collapse;table-layout:fixed;font:10px/1.25 var(--f-sheet);color:var(--paper-ink)}
+.sheet td{padding:2px 4px;height:15px;text-align:center;vertical-align:middle;white-space:pre-line;overflow-wrap:anywhere}
+.sheet .title{background:var(--paper-grey);font-weight:700;font-size:11.5px;border:1.5px solid var(--paper-line);padding:5px}
+.sheet .sb{border:1px solid var(--paper-line);text-align:left}
+.sheet .sb.head{background:var(--paper-grey);font-weight:700;vertical-align:bottom}
+.sheet .sb.label{background:var(--paper-light);font-weight:700}
+.sheet .sb.italic{font-style:italic}
+.sheet .sb.link{color:var(--paper-link);text-decoration:underline}
+.sheet .g{border:1px solid var(--paper-line)}
+.sheet .mh{background:var(--paper-grey);font-weight:700;border-bottom:2px solid var(--paper-line)}
+.sheet .mt{background:var(--paper-grey);border-top:1px solid var(--paper-line);border-bottom:1px solid var(--paper-line)}
+.sheet .mt.l{border-left:1px solid var(--paper-line)}
+.sheet .mt.r{border-left:1px solid var(--paper-line);border-right:1px solid var(--paper-line);font-weight:700}
+.sheet .mt.lab{font-weight:700}
+.sheet .ih{background:var(--paper-orange);font-weight:700;font-size:11px;border:1px solid var(--paper-line)}
+.sheet .left{text-align:left}.sheet .right{text-align:right}
+.sheet .th{background:var(--paper-peach);border-top:2px solid var(--paper-line)}
+.sheet .lv{background:var(--paper-val);border-bottom:1px solid #c9c9c9;vertical-align:bottom}
+.sheet .lc{vertical-align:bottom}
+.sheet .tot{background:var(--paper-blue);font-weight:700;font-size:11px}
+.sheet .tot.top{border-top:1px solid var(--paper-line)}
+
+.modal{position:fixed;inset:0;z-index:50;background:rgba(10,20,30,.45);display:flex;align-items:flex-start;justify-content:center;padding:6vh 16px}
+.modal-card{background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);width:min(640px,100%);padding:18px 20px;display:grid;gap:10px}
+.modal-card h3{margin:0;font-size:16px}
+.modal-card p{margin:0;color:var(--muted);font-size:13px}
+.modal-card textarea{width:100%;min-height:240px;border:1px solid var(--line);border-radius:8px;padding:10px;font:12px/1.4 var(--f-num);background:var(--surface)}
+.modal-actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;align-items:center}
+.msg{font-size:12.5px;color:var(--muted);margin-right:auto}
+.msg.bad{color:var(--bad)}
+[hidden]{display:none!important}
+.toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 14px;border-radius:8px;font-size:13px;font-weight:600;z-index:60;max-width:calc(100% - 32px)}
+.ex{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--orange);background:var(--orange-soft);border-radius:999px;padding:3px 9px}
+
+@media (max-width:1100px){.shell{grid-template-columns:minmax(0,1fr)}.out{position:static;max-height:none}}
+@media (max-width:760px){
+  .c3,.c4,.c5,.c6,.c8{grid-column:span 12}
+  .phase-top{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  .days{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .sep{display:none}.actions{margin-left:0}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<header class="bar"><div class="bar-in">
+  <div class="brand">
+    <div class="brand-logo"><img id="logoImg" alt="Pyramid Pool Monitoring Service" crossorigin="anonymous" src="https://pyramid-quote-builder.vercel.app/logo.png"></div>
+    <div><b>Quote Builder</b><span>Attachment A + B, built from one intake</span></div>
+  </div>
+  <div class="actions">
+    <button class="btn quiet" id="btnLiveHubspot" type="button">Load from HubSpot</button><button class="btn quiet" id="btnImport" type="button">Paste submission</button>
+    <button class="btn quiet" id="btnNew" type="button">New quote</button>
+    <span class="sep" aria-hidden="true"></span>
+    <select class="btn quiet" id="draftSel" aria-label="Saved drafts"><option value="">Saved drafts…</option></select>
+    <button class="btn" id="btnSave" type="button">Save draft</button>
+    <span class="sep" aria-hidden="true"></span>
+    <button class="btn primary" id="btnPdf" type="button">Download PDF</button>
+    <button class="btn accent" id="btnXlsx" type="button">Download Excel</button>
+  </div>
+</div></header>
+
+<main class="shell">
+  <section class="panel" aria-label="Quote intake">
+    <div class="sec">
+      <div class="sec-h"><div><h2>Client &amp; location</h2><p>Load a HubSpot submission directly, or paste a submission notification email.</p></div><span class="ex" id="exampleTag" hidden>Example quote</span></div>
+      <div class="grid">
+        <div class="fld c6"><label for="f_name">Community / location name</label><input id="f_name" data-path="client.name"></div>
+        <div class="fld c6"><label for="f_contact">Point of contact</label><input id="f_contact" data-path="client.contact"></div>
+        <div class="fld c6"><label for="f_email">Email</label><input id="f_email" type="email" data-path="client.email"></div>
+        <div class="fld c6"><label for="f_phone">Phone</label><input id="f_phone" data-path="client.phone"></div>
+        <div class="fld c12"><label for="f_address">Street address</label><input id="f_address" data-path="client.address"></div>
+        <div class="fld c5"><label for="f_city">City</label><input id="f_city" data-path="client.city"></div>
+        <div class="fld c3"><label for="f_state">State</label><select id="f_state" data-path="client.state"><option>GA</option><option>FL</option><option>TX</option><option>AL</option><option>SC</option><option>NC</option><option>TN</option><option>OH</option><option value="">Other</option></select></div>
+        <div class="fld c4"><label for="f_zip">ZIP</label><input id="f_zip" data-path="client.zip"></div>
+        <div class="fld c6"><label for="f_company">Management company</label><input id="f_company" data-path="client.company" placeholder="Optional"></div>
+        <div class="fld c6"><label for="f_desc">Description of work</label><input id="f_desc" data-path="client.description" list="workTypes"><datalist id="workTypes"><option>Pool Monitoring Services</option><option>Amenity Attendants</option><option>Access Control</option><option>Facility Attendants</option></datalist></div>
+        <div class="fld c12"><label for="f_req">Requested hours (from the form)</label><textarea id="f_req" data-path="client.requested" placeholder="e.g. We would like a monitor 3-9pm Sunday-Friday"></textarea><div class="hint">For reference only. The schedule below drives the quote.</div></div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-h"><div><h2>Quote dates</h2></div></div>
+      <div class="grid">
+        <div class="fld c4"><label for="f_qd">Date of quote</label><input id="f_qd" type="date" data-path="quote.quoteDate"></div>
+        <div class="fld c4"><label for="f_vu">Quote valid until</label><input id="f_vu" type="date" data-path="quote.validUntil"></div>
+        <div class="fld c4"><label for="f_due">First invoice due</label><input id="f_due" data-path="quote.firstDue"></div>
+      </div>
+      <div class="hint">Work start and end dates come from the schedule.</div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-h"><div><h2>Service schedule</h2><p>One phase per stretch of the season with the same weekly pattern. Pools multiply the hours (2 pools 11am–8pm = 18 hrs). Overlapping phases for the same time are blocked to prevent double-billing; use a dated Add override for extra shifts.</p></div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn sm" id="btnShift" type="button">Move all dates +1 year</button><button class="btn sm" id="btnAddPhase" type="button">+ Add phase</button></div></div>
+      <div id="phases"></div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-h"><div><h2>Date overrides</h2><p>Single days that break the pattern: closed days, holiday hours, an extra pool shift.</p></div><button class="btn sm" id="btnAddOv" type="button">+ Add override</button></div>
+      <div class="scroll"><table class="tbl" id="ovTbl"></table></div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-h"><div><h2>Pricing</h2></div></div>
+      <div class="grid">
+        <div class="fld c4"><label for="f_rate">Hourly rate</label><input id="f_rate" type="number" step="0.01" min="0"><div class="hint"><label class="chk"><input type="checkbox" id="f_rateAuto"> State default ($28, FL $38)</label></div></div>
+        <div class="fld c4"><label for="f_prem">Holiday premium (added $/hr)</label><input id="f_prem" type="number" step="0.01" min="0" data-path="pricing.premium" data-num="1"></div>
+        <div class="fld c4"><label for="f_admin">Administrative fee</label><input id="f_admin" type="number" step="0.01" min="0" data-path="pricing.admin" data-num="1"></div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-h"><div><h2>Additional services</h2><p>Leave Qty blank for automatic: monthly items bill every month, weekly items bill each week-ending Sunday, one-time items bill at signing. A Qty of 4 on a monthly item bills the first 4 months.</p></div><button class="btn sm" id="btnAddAddon" type="button">+ Custom item</button></div>
+      <div class="scroll"><table class="tbl" id="adTbl"></table></div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-h"><div><h2>Holidays</h2><p>Hours worked on these dates bill at the holiday premium.</p></div><button class="btn sm" id="btnStdHol" type="button">Add standard holidays for this season</button></div>
+      <div class="scroll"><table class="tbl" id="holTbl"></table></div>
+    </div>
+  </section>
+
+  <aside class="panel out" aria-label="Quote preview">
+    <div class="hero">
+      <div style="min-width:0"><div class="k">Live quote</div><h2 id="sumName">New quote</h2><p id="sumRange">Add a schedule to calculate.</p></div>
+      <span class="pill" id="sumPill">—</span>
+    </div>
+    <div class="kpis">
+      <div class="kpi"><span>Total hours</span><b id="kHours">0</b></div>
+      <div class="kpi lead"><span>Season total</span><b id="kTotal">$0.00</b></div>
+      <div class="kpi"><span>Due at signing</span><b id="kDue">$0.00</b></div>
+      <div class="kpi"><span>Holiday premium</span><b id="kHol">$0.00</b></div>
+    </div>
+    <div class="review" id="review"></div>
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" id="tabA" aria-selected="true" type="button">Attachment A · Service schedule</button>
+      <button class="tab" role="tab" id="tabB" aria-selected="false" type="button">Attachment B · Invoices</button>
+    </div>
+    <div class="stage"><div class="scroll"><div class="paper" id="paper"></div></div></div>
+  </aside>
+</main>
+
+<div class="modal" id="hsModal" hidden>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="hsTitle">
+    <h3 id="hsTitle">Import a HubSpot submission</h3>
+    <p>Open the “You've got a new submission” email, select everything, copy, and paste it here. This replaces the client details and schedule.</p>
+    <textarea id="hsText" placeholder="Paste the full notification email…"></textarea>
+    <div class="modal-actions"><span class="msg" id="hsMsg"></span><button class="btn" id="hsCancel" type="button">Cancel</button><button class="btn primary" id="hsGo" type="button">Fill intake</button></div>
+  </div>
+</div>
+<div class="modal" id="hubspotLiveModal" hidden>
+ <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="hubspotLiveTitle">
+  <h3 id="hubspotLiveTitle">HubSpot quote requests</h3>
+  <p>Read 2026 or 2025 quote submissions. Select a request to prefill the intake and verify details before generating attachments. No records are changed in HubSpot.</p>
+  <div class="fld"><label for="hubspotForm">Intake form</label><select id="hubspotForm"><option value="2026">2026 intake</option><option value="2025">2025 intake</option></select></div>
+  <div class="fld"><label for="hubspotPick">Submission</label><select id="hubspotPick"><option value="">Load requests to select a submission</option></select></div>
+  <div class="modal-actions"><span class="msg" id="hubspotLiveMsg"></span><button class="btn" id="hubspotLiveCancel" type="button">Close</button><button class="btn" id="hubspotRefresh" type="button">Refresh list</button><button class="btn primary" id="hubspotUse" type="button">Fill intake</button></div>
+ </div>
+</div>
+<div class="modal" id="newModal" hidden>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="newTitle">
+    <h3 id="newTitle">Start a new quote?</h3>
+    <p>This clears the form. Save a draft first if you want to keep the current quote.</p>
+    <div class="modal-actions"><button class="btn" id="newCancel" type="button">Keep editing</button><button class="btn primary" id="newGo" type="button">Start new quote</button></div>
+  </div>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+<script>
+/* PYRAMID Quote Builder — calculation engine (pure functions, no DOM). */
+const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const DEFAULTS = { standardRate: 28, floridaRate: 38, premium: 14, adminFee: 1500, validDays: 30,
+  phone: '(678) 975 - 1376', email: 'info@mypyramidinc.com', website: 'www.mypyramidinc.com' };
+const CATALOG = [
+  { name: 'Monitor pool PH Levels', invoiceLabel: 'Chemical Testing Kit', price: 75, unit: 'one-time' },
+  { name: 'Cleaning Services', invoiceLabel: 'Weekly Cleaning Fee', price: 100, unit: 'week' },
+  { name: 'Administrative Record Keeping', invoiceLabel: 'Recordkeeping Fee', price: 175, unit: 'month' }
+];
+
+const pad2 = n => (n < 10 ? '0' : '') + n;
+const keyOf = (y, m, d) => y + '-' + pad2(m) + '-' + pad2(d);
+const keyToUTC = k => Date.UTC(+k.slice(0, 4), +k.slice(5, 7) - 1, +k.slice(8, 10));
+const utcToKey = t => { const d = new Date(t); return keyOf(d.getUTCFullYear(), d.getUTCMonth() + 1, d.getUTCDate()); };
+const addDays = (k, n) => utcToKey(keyToUTC(k) + n * 86400000);
+const dow = k => new Date(keyToUTC(k)).getUTCDay();
+const round2 = n => Math.round((n + Number.EPSILON) * 100) / 100;
+const fmtNum = n => String(round2(n));
+const money0 = n => '$' + (n % 1 === 0 ? n.toFixed(0) : n.toFixed(2));
+const money = n => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n || 0);
+const longDate = k => k ? MONTHS[+k.slice(5, 7) - 1] + ' ' + (+k.slice(8, 10)) + ', ' + k.slice(0, 4) : '';
+const shortDate = k => k ? k.slice(5, 7) + '/' + k.slice(8, 10) + '/' + k.slice(0, 4) : '';
+const hm = t => { if (!t) return null; const [h, m] = t.split(':').map(Number); return h * 60 + m; };
+const fmtTime = min => { const h = Math.floor(min / 60) % 24, mi = min % 60; return (h % 12 || 12) + (mi ? ':' + pad2(mi) : '') + (h >= 12 ? 'pm' : 'am'); };
+const todayKey = () => { const d = new Date(); return keyOf(d.getFullYear(), d.getMonth() + 1, d.getDate()); };
+
+function nthWeekday(y, m0, wd, n) { const first = new Date(Date.UTC(y, m0, 1)).getUTCDay(); return keyOf(y, m0 + 1, 1 + (7 + wd - first) % 7 + (n - 1) * 7); }
+function lastWeekday(y, m0, wd) { const last = new Date(Date.UTC(y, m0 + 1, 0)); const d = last.getUTCDate() - (7 + last.getUTCDay() - wd) % 7; return keyOf(y, m0 + 1, d); }
+function standardHolidays(y) {
+  return [
+    { date: lastWeekday(y, 4, 1), name: 'Memorial Day' },
+    { date: y + '-06-19', name: 'Juneteenth' },
+    { date: y + '-07-04', name: 'Independence Day' },
+    { date: nthWeekday(y, 8, 1, 1), name: 'Labor Day' },
+    { date: nthWeekday(y, 9, 1, 2), name: 'Columbus Day' }
+  ];
+}
+
+function effectiveRate(s) {
+  if (s.pricing.rateAuto) return (s.client.state || '').toUpperCase() === 'FL' ? DEFAULTS.floridaRate : DEFAULTS.standardRate;
+  return Number(s.pricing.rate);
+}
+
+/** Phases (per-day times) + overrides -> rules the calculator understands. */
+function toRules(s) {
+  const rules = [];
+  s.phases.forEach(p => {
+    p.days.forEach((d, i) => {
+      if (!d.on) return;
+      rules.push({ phase: p.label || 'Schedule', label: p.note || '', start: p.start, end: p.end, dow: i, s: hm(d.start), e: hm(d.end), pools: Number(d.pools) || 0 });
+    });
+  });
+  return rules;
+}
+
+function buildModel(s) {
+  const errors = [], warnings = [];
+  const rate = effectiveRate(s), premium = Number(s.pricing.premium) || 0, adminFee = Number(s.pricing.admin) || 0;
+  if (!s.client.name.trim()) errors.push('Enter the community / location name.');
+  if (!s.client.contact || !s.client.contact.trim()) errors.push('Enter the client contact name.');
+  if (!s.client.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s.client.email.trim())) errors.push('Enter a valid client email address.');
+  if (!s.client.state || !/^(GA|FL|TX|AL|SC|NC|TN|OH)$/.test(s.client.state.toUpperCase())) errors.push('Select the correct service state; do not assume Georgia for an unknown location.');
+  if (!s.client.city || !s.client.city.trim()) errors.push('Enter the service city.');
+  if (!s.quote.quoteDate || !s.quote.validUntil || s.quote.validUntil < s.quote.quoteDate) errors.push('Enter a valid quote date and expiration date.');
+  if (premium < 0 || adminFee < 0 || !Number.isFinite(premium) || !Number.isFinite(adminFee)) errors.push('Additional rates/fees must be nonnegative.');
+  if (Math.abs(rate * 100 - Math.round(rate * 100)) > 1e-8) errors.push('Rate must have at most two decimal places.');
+  if (!(rate > 0)) errors.push('Hourly rate must be more than $0.');
+  const rules = toRules(s);
+  s.phases.forEach(p => {
+    const nm = '"' + (p.label || 'Schedule') + '"';
+    if (!p.start || !p.end) errors.push(nm + ' needs a start and end date.');
+    else if (p.end < p.start) errors.push(nm + ' ends before it starts.');
+    if (!p.days.some(d => d.on)) warnings.push(nm + ' has no days switched on.');
+    p.days.forEach((d, i) => {
+      if (!d.on) return;
+      const a = hm(d.start), b = hm(d.end);
+      if (a === null || b === null || b <= a) errors.push(nm + ': ' + DAYS[i] + ' needs an end time after its start time.');
+      else if ((b - a) / 60 < 5) warnings.push(nm + ': ' + DAYS[i] + ' is ' + fmtNum((b - a) / 60) + ' hrs. The intake form states a 5-hour daily minimum.');
+      if (!(Number(d.pools) > 0)) errors.push(nm + ': ' + DAYS[i] + ' needs at least 1 pool staffed.');
+    });
+  });
+  s.overrides.forEach(o => {
+    if (!o.date) errors.push('A date override is missing its date.');
+    if (o.action !== 'closed') { const a = hm(o.start), b = hm(o.end); if (a === null || b === null || b <= a) errors.push('Override on ' + (shortDate(o.date) || '?') + ' needs an end time after its start time.'); }
+  });
+  const addonsIn = s.addons.filter(a => a.on);
+  addonsIn.forEach(a => {
+    if (!Number.isFinite(Number(a.price)) || Number(a.price) < 0 || a.price === '') errors.push('"' + a.name + '" needs a nonnegative price.');
+    if (a.qty !== '' && a.qty != null && (!Number.isFinite(Number(a.qty)) || Number(a.qty) < 0)) errors.push('"' + a.name + '" needs a nonnegative quantity.');
+  });
+  const validRules = rules.filter(r => r.start && r.end && r.end >= r.start && r.s !== null && r.e !== null && r.e > r.s && r.pools > 0);
+  if (!validRules.length) { if (!errors.length) errors.push('Add a schedule phase with dates, days and hours.'); return { ok: false, errors, warnings }; }
+  for (let i = 0; i < validRules.length; i++) for (let j = i + 1; j < validRules.length; j++) {
+    const a = validRules[i], b = validRules[j];
+    if (a.dow === b.dow && a.start <= b.end && b.start <= a.end && a.s < b.e && b.s < a.e)
+      errors.push('Overlapping schedules on ' + DAYS[a.dow] + ' (' + a.phase + ' / ' + b.phase + ') could double-bill hours; use a dated Add override.');
+  }
+  if (errors.length) return { ok: false, errors, warnings };
+
+  const holidays = {};
+  s.holidays.forEach(h => { if (h.date) holidays[h.date] = h.name || 'Holiday'; });
+
+  let minK = null, maxK = null;
+  validRules.forEach(r => { if (!minK || r.start < minK) minK = r.start; if (!maxK || r.end > maxK) maxK = r.end; });
+  s.overrides.forEach(o => { if (o.date && o.action !== 'closed') { if (o.date < minK) minK = o.date; if (o.date > maxK) maxK = o.date; } });
+  const ovBy = {};
+  s.overrides.forEach(o => { if (o.date) (ovBy[o.date] = ovBy[o.date] || []).push(o); });
+
+  const days = [];
+  for (let k = minK; k <= maxK; k = addDays(k, 1)) {
+    const dw = dow(k); let segs = [];
+    validRules.forEach(r => { if (k >= r.start && k <= r.end && r.dow === dw) segs.push({ s: r.s, e: r.e, pools: r.pools, label: r.label }); });
+    (ovBy[k] || []).forEach(o => {
+      if (o.action === 'closed') segs = [];
+      else if (o.action === 'set') segs = [{ s: hm(o.start), e: hm(o.end), pools: Number(o.pools) || 1, label: o.note || '' }];
+      else segs.push({ s: hm(o.start), e: hm(o.end), pools: Number(o.pools) || 1, label: o.note || '' });
+    });
+    let hours = 0; segs.forEach(g => { hours += (g.e - g.s) / 60 * g.pools; });
+    hours = round2(hours);
+    const seen = {}, lines = [];
+    segs.slice().sort((a, b) => a.s - b.s).forEach(g => { const t = fmtTime(g.s) + '-' + fmtTime(g.e) + (g.label ? ' (' + g.label + ')' : ''); if (!seen[t]) { seen[t] = 1; lines.push(t); } });
+    days.push({ key: k, dow: dw, hours, text: lines.join('\n'), holiday: holidays[k] && hours > 0 ? holidays[k] : '' });
+  }
+  if (!days.some(d => d.hours > 0)) return { ok: false, errors: ['The schedule produces no service hours. Check the dates, days and overrides.'], warnings };
+
+  const months = [], byYm = {};
+  days.forEach(d => {
+    const ym = d.key.slice(0, 7);
+    if (!byYm[ym]) { byYm[ym] = { ym, year: +ym.slice(0, 4), month: +ym.slice(5, 7), days: [], hours: 0, holidayHours: 0, addonAmount: 0, addonParts: [] }; months.push(byYm[ym]); }
+    const mo = byYm[ym]; mo.days.push(d); mo.hours = round2(mo.hours + d.hours);
+    if (d.holiday) mo.holidayHours = round2(mo.holidayHours + d.hours);
+  });
+  const billedIdx = []; months.forEach((mo, i) => { if (mo.hours > 0) billedIdx.push(i); });
+  const ymIndex = k => { const i = months.findIndex(m => m.ym === k.slice(0, 7)); return i < 0 ? months.length - 1 : i; };
+  // Weekly items: one per Sunday between Work Start and Work End, billed in that Sunday's month.
+  const weekUnits = days.filter(d => d.dow === 0).map(d => ymIndex(d.key));
+
+  const addons = addonsIn.map(a => {
+    const unit = a.unit, price = Number(a.price);
+    let units = unit === 'month' ? billedIdx.slice() : unit === 'week' ? weekUnits.slice() : [billedIdx[0]];
+    if (!units.length) units = [billedIdx[0]];
+    const autoQty = unit === 'one-time' ? 1 : units.length;
+    const qty = a.qty === '' || a.qty === null || a.qty === undefined ? autoQty : Number(a.qty);
+    let remaining = qty, idx = 0;
+    while (remaining > 1e-9) {
+      const take = Math.min(1, remaining), mi = units[Math.min(idx, units.length - 1)];
+      months[mi].addonParts.push(round2(take * price));
+      months[mi].addonAmount = round2(months[mi].addonAmount + take * price);
+      remaining = round2(remaining - take); idx++;
+    }
+    return { name: a.name, invoiceLabel: a.invoiceLabel || a.name, price, unit, qty, autoQty, total: round2(qty * price) };
+  });
+
+  let totalHours = 0, holidayHours = 0;
+  const firstBilled = billedIdx[0];
+  months.forEach((mo, i) => {
+    totalHours = round2(totalHours + mo.hours); holidayHours = round2(holidayHours + mo.holidayHours);
+    mo.labor = round2(mo.hours * rate); mo.holidayAmount = round2(mo.holidayHours * premium);
+    mo.invoice = round2(mo.labor + mo.holidayAmount + mo.addonAmount + (i === firstBilled ? adminFee : 0));
+  });
+  const billed = months.filter(m => m.hours > 0 || m.invoice > 0);
+  const addonsTotal = round2(addons.reduce((t, a) => t + a.total, 0));
+  const labor = round2(totalHours * rate), holidayAmount = round2(holidayHours * premium);
+  const seasonTotal = round2(labor + addonsTotal + adminFee + holidayAmount);
+  const invoiceSum = round2(billed.reduce((t, m) => t + m.invoice, 0));
+
+  // Review items
+  const years = [...new Set(days.map(d => +d.key.slice(0, 4)))];
+  years.forEach(y => { if (!s.holidays.some(h => h.date && +h.date.slice(0, 4) === y)) warnings.push('No holidays are listed for ' + y + '. Add the standard holidays if this season includes any.'); });
+  s.holidays.forEach(h => { if (h.date >= minK && h.date <= maxK) { const d = days.find(x => x.key === h.date); if (d && !(d.hours > 0)) warnings.push(h.name + ' (' + shortDate(h.date) + ') has no service scheduled, so no holiday rate applies.'); } });
+  const st = (s.client.state || '').toUpperCase();
+  if (!s.pricing.rateAuto && st === 'FL' && rate !== DEFAULTS.floridaRate) warnings.push('Florida quotes default to $38/hr; this quote uses ' + money(rate) + '/hr.');
+  if (!s.pricing.rateAuto && st && st !== 'FL' && rate !== DEFAULTS.standardRate) warnings.push('The standard rate is $28/hr; this quote uses ' + money(rate) + '/hr.');
+  const wk = {};
+  days.forEach(d => { const mon = addDays(d.key, -((d.dow + 6) % 7)); wk[mon] = (wk[mon] || 0) + (d.hours > 0 ? 1 : 0); });
+  Object.keys(wk).forEach(mon => { if (mon >= minK && addDays(mon, 6) <= maxK && wk[mon] < 4) warnings.push('Week of ' + shortDate(mon) + ' has ' + wk[mon] + ' service days. The intake form states a 4-day weekly minimum.'); });
+
+  return {
+    ok: Math.abs(invoiceSum - seasonTotal) < 0.01, errors: Math.abs(invoiceSum - seasonTotal) < 0.01 ? [] : ['Monthly invoices (' + money(invoiceSum) + ') do not equal the season total (' + money(seasonTotal) + ').'],
+    warnings, rate, premium, adminFee, client: s.client, firstDue: s.quote.firstDue || 'Due upon signing agreement',
+    quoteDate: s.quote.quoteDate, validUntil: s.quote.validUntil, year: +minK.slice(0, 4), seasonStart: minK, seasonEnd: maxK,
+    serviceDays: days.filter(d => d.hours > 0).length, months, billed, addons, invoiceSum,
+    totals: { hours: totalHours, holidayHours, labor, addons: addonsTotal, admin: adminFee, holiday: holidayAmount, seasonTotal, dueAtSigning: billed[0].invoice }
+  };
+}
+
+/* ---------- Sheet layouts shared by the preview, PDF and Excel ---------- */
+
+/** Attachment A: rows of [A sidebar cell, right block]. */
+function layoutA(m) {
+  const c = m.client, side = [];
+  const L = t => side.push({ t, k: 'label' }), V = t => side.push({ t: t || '', k: 'value' }), B = () => side.push({ t: '', k: 'value' });
+  side.push({ t: 'Client Name: ' + c.name, k: 'head' });
+  L('Client Point of Contact'); V(c.contact);
+  L('Address'); V(c.address); V([c.city, [c.state, c.zip].filter(Boolean).join(' ')].filter(Boolean).join(', '));
+  L('Phone Number'); V(c.phone);
+  L('Email Address'); V(c.email);
+  B(); B();
+  L('Date Of Quote:'); V(shortDate(m.quoteDate));
+  L('Work Start Date:'); V(shortDate(m.seasonStart));
+  L('Work End Date:'); V(shortDate(m.seasonEnd));
+  L('Quote Valid Until:'); V(shortDate(m.validUntil));
+  B();
+  L('Additional Services');
+  if (m.addons.length) m.addons.forEach(a => V(a.name)); else V('None');
+  B();
+  L('Description of Work'); V(' ' + (c.description || 'Pool Monitoring Services'));
+  B();
+  side.push({ t: 'For questions please contact:', k: 'italic' });
+  B();
+  V(DEFAULTS.phone); V(DEFAULTS.email); side.push({ t: DEFAULTS.website, k: 'link' });
+
+  const right = [];
+  m.months.forEach((mo, i) => {
+    if (i > 0) right.push({ type: 'gap' });
+    right.push({ type: 'head', cells: [MONTHS[mo.month - 1].toUpperCase() + ' - DAY', 'DATE', 'HOURS', 'TOTAL'] });
+    const first = right.length;
+    mo.days.forEach(d => right.push({ type: 'day', day: d, cells: [DAYS[d.dow] + (d.holiday ? '\n' + d.holiday : ''), longDate(d.key), d.hours > 0 ? d.text : '', d.hours > 0 ? d.hours.toFixed(2) : ''] }));
+    right.push({ type: 'total', firstDayRow: first, lastDayRow: right.length - 1, cells: ['', '', 'MONTHLY TOTAL', mo.hours.toFixed(2)], month: mo });
+  });
+  const n = Math.max(side.length, right.length), rows = [];
+  for (let i = 0; i < n; i++) rows.push({ a: side[i] || null, r: right[i] || { type: 'none' } });
+  return rows;
+}
+
+/** Attachment B: invoice rows then the totals stack. */
+function layoutB(m) {
+  const rows = [];
+  m.billed.forEach((mo, i) => rows.push({ type: 'month', mo, cells: [MONTHS[mo.month - 1] + ' Invoice Payment', i === 0 ? m.firstDue : longDate(keyOf(mo.year, mo.month, 1)), mo.hours.toFixed(2), money(mo.invoice)] }));
+  rows.push({ type: 'hours', cells: ['', '', 'Total Hours', m.totals.hours.toFixed(2)] });
+  rows.push({ type: 'line', key: 'subtotal', cells: ['', '', 'Subtotal\nRate: ' + money0(m.rate) + '/hour', money(m.totals.labor)] });
+  m.addons.filter(a => a.unit === 'one-time').forEach(a => rows.push({ type: 'line', addon: a, cells: ['', '', a.qty === 1 ? a.invoiceLabel : a.invoiceLabel + '\n' + fmtNum(a.qty) + ' x ' + money0(a.price), money(a.total)] }));
+  rows.push({ type: 'line', key: 'admin', cells: ['', '', 'Administrative Fee', money(m.adminFee)] });
+  m.addons.filter(a => a.unit === 'week').forEach(a => rows.push({ type: 'line', addon: a, cells: ['', '', a.invoiceLabel, money(a.total)] }));
+  m.addons.filter(a => a.unit === 'month').forEach(a => rows.push({ type: 'line', addon: a, cells: ['', '', a.invoiceLabel + '\n' + money0(a.price) + '/mo at ' + fmtNum(a.qty) + (a.qty === 1 ? ' month' : ' months'), money(a.total)] }));
+  rows.push({ type: 'line', key: 'holiday', cells: ['', '', 'Additional Holiday Rate\n' + fmtNum(m.totals.holidayHours) + ' hrs, Rate: ' + money0(m.premium), money(m.totals.holiday)] });
+  rows.push({ type: 'season', cells: ['', '', 'Total Season Amount', money(m.totals.seasonTotal)] });
+  rows.push({ type: 'blank' }); rows.push({ type: 'blank' });
+  rows.push({ type: 'due', cells: ['', '', 'Total Due Upon Signing Contract', money(m.totals.dueAtSigning)] });
+  return rows;
+}
+
+/* ---------- HubSpot notification parsing ---------- */
+
+function parseHubspot(text) {
+  const t = String(text || '').replace(/\r/g, '').replace(/[ \t]+/g, ' ');
+  const fields = [
+    ['first', /\bFirst Name\s*\n/i], ['last', /\bLast name\s*\n/i], ['email', /\n\s*Email\s*\n/i], ['phone', /\bPhone Number\s*\n/i],
+    ['type', /\bAre You A:?\s*\n/i], ['community', /\bCommunity Name\s*\n/i], ['pm', /\bProperty Management Company Name[^\n]*\n/i],
+    ['address', /\bCommunity Address\s*\n/i], ['city', /\bCommunity City\s*\n/i], ['stateZip', /\bCommunity State\/Region[^\n]*\n/i],
+    ['pools', /\bHow many pools[^\n]*\n/i], ['homes', /\bApprox\.? Num of Homes[^\n]*\n/i], ['start', /\bDesired Start Date\s*\n/i],
+    ['end', /\bDesired End Date\s*\n/i], ['services', /\bIn addition to pool monitoring[\s\S]*?apply\)?:?\s*\n/i],
+    ['days', /\bSelect which days service[\s\S]*?hours\/day\.?\s*\n/i], ['hours', /\bProvide a description of the days[\s\S]*?Sunday\.\s*\n/i],
+    ['heard', /\bHow Did You Hear About Us\s*\n/i], ['company', /\bCompany name\s*\n/i], ['_end', /\bView submission in HubSpot|This email was sent to/i]
+  ];
+  const hits = [];
+  fields.forEach(([key, re]) => { const m = re.exec(t); if (m) hits.push({ key, start: m.index, end: m.index + m[0].length }); });
+  hits.sort((a, b) => a.start - b.start);
+  const out = {};
+  hits.forEach((h, i) => {
+    if (h.key === '_end') return;
+    const stop = i + 1 < hits.length ? hits[i + 1].start : t.length;
+    const uniq = [];
+    t.slice(h.end, stop).split('\n').map(x => x.trim()).filter(Boolean).forEach(l => { if (!uniq.includes(l)) uniq.push(l); });
+    out[h.key] = h.key === 'hours' || h.key === 'services' ? uniq.join(' ') : (uniq[0] || '');
+  });
+  return out;
+}
+
+const DAY_RE = '(sundays?|sun|mondays?|mon|tuesdays?|tues|tue|wednesdays?|wed|thursdays?|thurs|thur|thu|fridays?|fri|saturdays?|sat)';
+const dayIndex = w => ({ sun: 0, mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6 })[w.slice(0, 3)];
+function parseDays(s) {
+  const d = [false, false, false, false, false, false, false];
+  s = ' ' + s.toLowerCase() + ' ';
+  if (/\b(daily|every ?day|7 days|seven days|all week)\b/.test(s)) return d.map(() => true);
+  if (/\bweekdays?\b/.test(s)) for (let i = 1; i <= 5; i++) d[i] = true;
+  if (/\bweekends?\b/.test(s)) { d[0] = true; d[6] = true; }
+  const re = new RegExp('\\b' + DAY_RE + '\\b(?:\\s*(?:-|to|through|thru)\\s*\\b' + DAY_RE + '\\b)?', 'g');
+  let m;
+  while ((m = re.exec(s))) {
+    const a = dayIndex(m[1]);
+    if (m[2]) { const b = dayIndex(m[2]); for (let k = a; ; k = (k + 1) % 7) { d[k] = true; if (k === b) break; } } else d[a] = true;
+  }
+  return d;
+}
+const to24 = (h, m, ap) => { if (h === 12) h = 0; if (ap === 'pm') h += 12; return h * 60 + m; };
+function parseRequestedHours(text) {
+  const t = ' ' + String(text).toLowerCase().replace(/[–—]/g, '-').replace(/\bnoon\b/g, '12pm').replace(/a\.m\.?/g, 'am').replace(/p\.m\.?/g, 'pm') + ' ';
+  const re = /(\d{1,2})(?::(\d{2}))?\s*(am|pm)?\s*(?:-|to|until)\s*(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/g;
+  const hits = []; let m;
+  while ((m = re.exec(t))) hits.push({ i: m.index, e: re.lastIndex, m });
+  if (!hits.length) return [];
+  const daysFirst = parseDays(t.slice(0, hits[0].i)).some(Boolean);
+  const out = [];
+  hits.forEach((h, i) => {
+    const seg = daysFirst ? t.slice(i ? hits[i - 1].e : 0, h.i) : t.slice(h.e, i + 1 < hits.length ? hits[i + 1].i : t.length);
+    const days = parseDays(seg);
+    if (!days.some(Boolean)) return;
+    const sh = +h.m[1], sm = +(h.m[2] || 0), eh = +h.m[4], em = +(h.m[5] || 0);
+    const eap = h.m[6] || (eh <= 12 ? 'pm' : 'am');
+    const end = to24(eh, em, eap);
+    let start;
+    if (h.m[3]) start = to24(sh, sm, h.m[3]);
+    else { const p = to24(sh, sm, 'pm'); start = p < end ? p : to24(sh, sm, 'am'); }
+    if (end > start) out.push({ days, start, end });
+  });
+  return out;
+}
+function splitStateZip(s) {
+  s = String(s || '').trim();
+  let st = (s.match(/\b([A-Za-z]{2})\b/) || [])[1] || '';
+  const zip = (s.match(/\b(\d{5})\b/) || [])[1] || '';
+  const names = { georgia: 'GA', florida: 'FL', texas: 'TX', alabama: 'AL', 'south carolina': 'SC', 'north carolina': 'NC', tennessee: 'TN', ohio: 'OH' };
+  Object.keys(names).forEach(k => { if (s.toLowerCase().includes(k)) st = names[k]; });
+  if (!st && zip) {
+    const z = +zip.slice(0, 3);
+    st = (z >= 300 && z <= 319) || (z >= 398 && z <= 399) ? 'GA' : (z >= 320 && z <= 349) ? 'FL' : (z >= 350 && z <= 369) ? 'AL'
+      : (z >= 750 && z <= 799) || z === 885 ? 'TX' : (z >= 290 && z <= 299) ? 'SC' : (z >= 270 && z <= 289) ? 'NC' : (z >= 370 && z <= 385) ? 'TN' : (z >= 430 && z <= 459) ? 'OH' : '';
+  }
+  return { state: st.toUpperCase(), zip };
+}
+function fmtPhone(p) { let d = String(p || '').replace(/\D/g, ''); if (d.length === 11 && d[0] === '1') d = d.slice(1); return d.length === 10 ? d.slice(0, 3) + '-' + d.slice(3, 6) + '-' + d.slice(6) : String(p || ''); }
+function looseDateKey(s) {
+  s = String(s || '').trim(); if (!s) return '';
+  if (/^\d{13}$/.test(s)) { const d = new Date(Number(s)); return isNaN(d.getTime()) ? '' : d.toISOString().slice(0, 10); }
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) { const d = new Date(s + 'T00:00:00Z'); return !isNaN(d.getTime()) && d.toISOString().slice(0, 10) === s ? s : ''; }
+  const d = new Date(s); if (isNaN(d.getTime())) return '';
+  return keyOf(d.getFullYear(), d.getMonth() + 1, d.getDate());
+}
+const minToHHMM = m => pad2(Math.floor(m / 60)) + ':' + pad2(m % 60);
+
+if (typeof module !== 'undefined') module.exports = { buildModel, layoutA, layoutB, parseHubspot, parseRequestedHours, splitStateZip, fmtPhone, standardHolidays, looseDateKey, CATALOG };
+
+</script>
+<script>
+(() => {
+'use strict';
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const uid = () => Math.random().toString(36).slice(2, 9);
+const LOGO = $('#logoImg').src;
+let LOGO_DATA = null, LOGO_RATIO = 534 / 2250;
+(function loadLogo() {
+  const img = $('#logoImg');
+  const go = () => {
+    try {
+      if (img.naturalWidth) LOGO_RATIO = img.naturalHeight / img.naturalWidth;
+      if (img.src.startsWith('data:')) { LOGO_DATA = img.src; return; }
+      const c = document.createElement('canvas'); c.width = img.naturalWidth; c.height = img.naturalHeight;
+      c.getContext('2d').drawImage(img, 0, 0); LOGO_DATA = c.toDataURL('image/png');
+    } catch (e) { LOGO_DATA = null; }
+  };
+  if (img.complete && img.naturalWidth) go(); else img.addEventListener('load', go);
+})();
+const DAY_ORDER = [1, 2, 3, 4, 5, 6, 0];
+const SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const store = { get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} } };
+
+const blankDays = () => [0, 1, 2, 3, 4, 5, 6].map(() => ({ on: false, start: '11:00', end: '20:00', pools: 1 }));
+const newPhase = (label, start = '', end = '') => ({ id: uid(), label, note: '', start, end, days: blankDays() });
+function freshState() {
+  const t = todayKey(), y = +t.slice(0, 4) + 1;
+  return { example: false,
+    client: { name: '', contact: '', email: '', phone: '', address: '', city: '', state: 'GA', zip: '', company: '', description: 'Pool Monitoring Services', requested: '' },
+    quote: { quoteDate: t, validUntil: addDays(t, DEFAULTS.validDays), firstDue: 'Due upon signing agreement' },
+    pricing: { rateAuto: true, rate: DEFAULTS.standardRate, premium: DEFAULTS.premium, admin: DEFAULTS.adminFee },
+    phases: [newPhase('Primary schedule')], overrides: [],
+    holidays: standardHolidays(y).map(h => ({ id: uid(), ...h })),
+    addons: CATALOG.map(c => ({ id: uid(), on: false, qty: '', ...c })) };
+}
+function exampleState() {
+  const s = freshState();
+  const d = (on, a, b, p = 1) => ({ on, start: a, end: b, pools: p });
+  const early = blankDays(), late = blankDays();
+  early[1] = d(true, '14:00', '20:00'); [2, 3, 4].forEach(i => early[i] = d(true, '11:00', '20:00')); [5, 6, 0].forEach(i => early[i] = d(true, '11:00', '20:00', 2));
+  [1, 2, 3, 4].forEach(i => late[i] = d(true, '14:00', '20:00')); late[5] = d(true, '14:00', '20:00', 2); [6, 0].forEach(i => late[i] = d(true, '11:00', '20:00', 2));
+  Object.assign(s, { example: true,
+    client: { name: 'Sample Lakes HOA', contact: 'Pat Rivera', email: 'manager@samplelakes.org', phone: '555-010-2027', address: '100 Lakeview Drive', city: 'Atlanta', state: 'GA', zip: '30301', company: '', description: 'Pool Monitoring Services', requested: '' },
+    quote: { quoteDate: '2026-10-06', validUntil: '2027-01-01', firstDue: 'Due upon signing agreement' },
+    pricing: { rateAuto: true, rate: 28, premium: 14, admin: 3000 },
+    phases: [{ id: uid(), label: 'Summer', note: '', start: '2027-05-22', end: '2027-07-31', days: early }, { id: uid(), label: 'Back to school', note: '', start: '2027-08-01', end: '2027-09-07', days: late }],
+    overrides: [
+      { id: uid(), date: '2027-05-22', action: 'closed', start: '', end: '', pools: 1, note: 'Not open yet' },
+      { id: uid(), date: '2027-05-23', action: 'closed', start: '', end: '', pools: 1, note: 'Not open yet' },
+      { id: uid(), date: '2027-05-24', action: 'set', start: '11:00', end: '20:00', pools: 1, note: '' },
+      { id: uid(), date: '2027-05-24', action: 'add', start: '14:00', end: '20:00', pools: 1, note: 'big pool' },
+      { id: uid(), date: '2027-05-31', action: 'set', start: '11:00', end: '20:00', pools: 2, note: '' },
+      { id: uid(), date: '2027-06-11', action: 'set', start: '11:00', end: '20:00', pools: 1, note: '' },
+      { id: uid(), date: '2027-09-06', action: 'set', start: '11:00', end: '20:00', pools: 2, note: '' }],
+    addons: CATALOG.map(c => ({ id: uid(), on: true, qty: c.unit === 'month' ? 4 : '', ...c })) });
+  return s;
+}
+
+let S;
+try { S = JSON.parse(store.get('pyramid-quote-current')) || exampleState(); } catch (e) { S = exampleState(); }
+let tab = 'A', lastModel = null;
+
+/* ---------- binding ---------- */
+const getPath = p => p.split('.').reduce((o, k) => o[k], S);
+const setPath = (p, v) => { const ks = p.split('.'), last = ks.pop(); ks.reduce((o, k) => o[k], S)[last] = v; };
+function syncFields() {
+  document.querySelectorAll('[data-path]').forEach(el => { const v = getPath(el.dataset.path); el.value = v ?? ''; });
+  $('#f_rateAuto').checked = !!S.pricing.rateAuto;
+  $('#f_rate').disabled = !!S.pricing.rateAuto;
+  $('#f_rate').value = S.pricing.rateAuto ? effectiveRate(S) : S.pricing.rate;
+  $('#exampleTag').hidden = !S.example;
+}
+document.querySelectorAll('[data-path]').forEach(el => el.addEventListener('input', () => {
+  setPath(el.dataset.path, el.dataset.num ? (el.value === '' ? '' : Number(el.value)) : el.value);
+  if (el.dataset.path.startsWith('client.')) S.example = false;
+  if (el.dataset.path === 'client.state' && S.pricing.rateAuto) $('#f_rate').value = effectiveRate(S);
+  refresh();
+}));
+$('#f_rateAuto').addEventListener('change', e => { S.pricing.rateAuto = e.target.checked; if (!e.target.checked) S.pricing.rate = effectiveRate({ ...S, pricing: { ...S.pricing, rateAuto: true } }); syncFields(); refresh(); });
+$('#f_rate').addEventListener('input', e => { S.pricing.rate = Number(e.target.value); refresh(); });
+
+/* ---------- phases ---------- */
+function renderPhases() {
+  $('#phases').innerHTML = S.phases.map((p, pi) => `
+  <div class="phase" data-pi="${pi}">
+    <div class="phase-top">
+      <div class="fld"><label for="pl${p.id}">Phase</label><input id="pl${p.id}" data-pf="label" value="${esc(p.label)}"></div>
+      <div class="fld"><label for="ps${p.id}">Start</label><input id="ps${p.id}" type="date" data-pf="start" value="${esc(p.start)}"></div>
+      <div class="fld"><label for="pe${p.id}">End</label><input id="pe${p.id}" type="date" data-pf="end" value="${esc(p.end)}"></div>
+      <div class="fld"><label for="pn${p.id}">Note on schedule</label><input id="pn${p.id}" data-pf="note" value="${esc(p.note)}" placeholder="Optional, e.g. big pool"></div>
+      <button class="btn sm danger" type="button" data-act="delPhase">Remove</button>
+    </div>
+    <div class="quick">
+      <button class="chip" type="button" data-q="all">Every day</button><button class="chip" type="button" data-q="wk">Weekdays</button><button class="chip" type="button" data-q="we">Weekends</button><button class="chip" type="button" data-q="none">Clear</button><button class="chip" type="button" data-q="copy">Copy first day's hours to all</button>
+    </div>
+    <div class="days">${DAY_ORDER.map(i => { const d = p.days[i], h = d.on ? Math.max(0, ((hm(d.end) || 0) - (hm(d.start) || 0)) / 60) * (Number(d.pools) || 0) : 0; return `
+      <div class="dayc ${d.on ? '' : 'off'}" data-d="${i}">
+        <label class="dn"><input type="checkbox" data-k="on" ${d.on ? 'checked' : ''}> ${SHORT[i]}</label>
+        <input type="time" data-k="start" value="${esc(d.start)}" aria-label="${DAYS[i]} start">
+        <input type="time" data-k="end" value="${esc(d.end)}" aria-label="${DAYS[i]} end">
+        <div><span class="mini">Pools</span><input type="number" min="1" step="1" data-k="pools" value="${esc(d.pools)}" aria-label="${DAYS[i]} pools"></div>
+        <span class="dh">${d.on ? round2(h) + ' hrs' : 'off'}</span>
+      </div>`; }).join('')}</div>
+  </div>`).join('');
+}
+$('#phases').addEventListener('input', e => {
+  const card = e.target.closest('.phase'); if (!card) return;
+  const p = S.phases[+card.dataset.pi];
+  if (e.target.dataset.pf) p[e.target.dataset.pf] = e.target.value;
+  else if (e.target.dataset.k) { const d = p.days[+e.target.closest('.dayc').dataset.d], k = e.target.dataset.k; d[k] = k === 'on' ? e.target.checked : k === 'pools' ? e.target.value : e.target.value; if (k === 'on' || k === 'pools' || k === 'start' || k === 'end') updateDayChip(e.target.closest('.dayc'), d); }
+  refresh();
+});
+function updateDayChip(el, d) { el.classList.toggle('off', !d.on); const h = d.on ? Math.max(0, ((hm(d.end) || 0) - (hm(d.start) || 0)) / 60) * (Number(d.pools) || 0) : 0; el.querySelector('.dh').textContent = d.on ? round2(h) + ' hrs' : 'off'; }
+$('#phases').addEventListener('click', e => {
+  const card = e.target.closest('.phase'); if (!card) return;
+  const pi = +card.dataset.pi, p = S.phases[pi];
+  if (e.target.dataset.act === 'delPhase') { S.phases.splice(pi, 1); if (!S.phases.length) S.phases.push(newPhase('Primary schedule')); renderPhases(); refresh(); return; }
+  const q = e.target.dataset.q; if (!q) return;
+  if (q === 'copy') { const src = DAY_ORDER.map(i => p.days[i]).find(d => d.on) || p.days[1]; p.days.forEach(d => { if (d.on) { d.start = src.start; d.end = src.end; d.pools = src.pools; } }); }
+  else p.days.forEach((d, i) => { d.on = q === 'all' || (q === 'wk' && i >= 1 && i <= 5) || (q === 'we' && (i === 0 || i === 6)); });
+  renderPhases(); refresh();
+});
+$('#btnAddPhase').onclick = () => { const last = S.phases[S.phases.length - 1]; S.phases.push(newPhase('Phase ' + (S.phases.length + 1), last && last.end ? addDays(last.end, 1) : '', '')); renderPhases(); refresh(); };
+$('#btnShift').onclick = () => {
+  const bump = k => { if (!k) return k; const y = +k.slice(0, 4) + 1, md = k.slice(5); return (md === '02-29' ? y + '-02-28' : y + '-' + md); };
+  S.phases.forEach(p => { p.start = bump(p.start); p.end = bump(p.end); });
+  S.overrides.forEach(o => { o.date = bump(o.date); });
+  const years = new Set(S.phases.flatMap(p => [p.start, p.end]).filter(Boolean).map(k => +k.slice(0, 4)));
+  years.forEach(y => standardHolidays(y).forEach(h => { if (!S.holidays.some(x => x.date === h.date)) S.holidays.push({ id: uid(), ...h }); }));
+  S.holidays.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+  renderAll(); toast('Moved the schedule forward one year. Check the weekday patterns.');
+};
+
+/* ---------- overrides ---------- */
+function renderOverrides() {
+  const t = $('#ovTbl');
+  if (!S.overrides.length) { t.innerHTML = '<tr><td class="empty">No overrides. The weekly pattern applies every day.</td></tr>'; return; }
+  t.innerHTML = '<tr><th>Date</th><th>Action</th><th>Start</th><th>End</th><th>Pools</th><th>Note on schedule</th><th></th></tr>' + S.overrides.map((o, i) => `
+  <tr data-i="${i}">
+    <td><input class="cellin" type="date" data-f="date" value="${esc(o.date)}" aria-label="Override date"></td>
+    <td><select class="cellin" data-f="action" aria-label="Override action"><option value="closed" ${o.action === 'closed' ? 'selected' : ''}>Closed</option><option value="set" ${o.action === 'set' ? 'selected' : ''}>Set hours</option><option value="add" ${o.action === 'add' ? 'selected' : ''}>Add shift</option></select></td>
+    <td><input class="cellin" type="time" data-f="start" value="${esc(o.start)}" ${o.action === 'closed' ? 'disabled' : ''} aria-label="Start"></td>
+    <td><input class="cellin" type="time" data-f="end" value="${esc(o.end)}" ${o.action === 'closed' ? 'disabled' : ''} aria-label="End"></td>
+    <td style="width:70px"><input class="cellin" type="number" min="1" data-f="pools" value="${esc(o.pools)}" ${o.action === 'closed' ? 'disabled' : ''} aria-label="Pools"></td>
+    <td><input class="cellin" data-f="note" value="${esc(o.note)}" placeholder="${o.action === 'add' ? 'e.g. big pool' : 'Internal note'}" aria-label="Note"></td>
+    <td><button class="btn sm danger" type="button" data-del>Remove</button></td>
+  </tr>`).join('');
+}
+$('#ovTbl').addEventListener('input', e => { const tr = e.target.closest('tr[data-i]'); if (!tr) return; const o = S.overrides[+tr.dataset.i]; o[e.target.dataset.f] = e.target.value; if (e.target.dataset.f === 'action') renderOverrides(); refresh(); });
+$('#ovTbl').addEventListener('click', e => { if (e.target.dataset.del === undefined) return; S.overrides.splice(+e.target.closest('tr').dataset.i, 1); renderOverrides(); refresh(); });
+$('#btnAddOv').onclick = () => { S.overrides.push({ id: uid(), date: '', action: 'closed', start: '11:00', end: '20:00', pools: 1, note: '' }); renderOverrides(); refresh(); };
+
+/* ---------- add-ons ---------- */
+function renderAddons() {
+  const t = $('#adTbl');
+  const auto = {}; if (lastModel && lastModel.addons) lastModel.addons.forEach(a => { auto[a.name] = a.autoQty; });
+  t.innerHTML = '<tr><th>Include</th><th>Name on Attachment A</th><th>Invoice line (Attachment B)</th><th>Price</th><th>Billing</th><th>Qty</th><th></th></tr>' + S.addons.map((a, i) => `
+  <tr data-i="${i}">
+    <td style="width:56px;text-align:center"><input type="checkbox" data-f="on" ${a.on ? 'checked' : ''} aria-label="Include ${esc(a.name)}" style="width:16px;height:16px;accent-color:var(--blue)"></td>
+    <td><input class="cellin" data-f="name" value="${esc(a.name)}" aria-label="Name on Attachment A"></td>
+    <td><input class="cellin" data-f="invoiceLabel" value="${esc(a.invoiceLabel)}" aria-label="Invoice line"></td>
+    <td style="width:90px"><input class="cellin" type="number" step="0.01" min="0" data-f="price" value="${esc(a.price)}" aria-label="Price"></td>
+    <td style="width:120px"><select class="cellin" data-f="unit" aria-label="Billing"><option value="one-time" ${a.unit === 'one-time' ? 'selected' : ''}>One-time</option><option value="week" ${a.unit === 'week' ? 'selected' : ''}>Per week</option><option value="month" ${a.unit === 'month' ? 'selected' : ''}>Per month</option></select></td>
+    <td style="width:80px"><input class="cellin" type="number" step="1" min="0" data-f="qty" value="${esc(a.qty)}" placeholder="${a.on && auto[a.name] !== undefined ? 'auto ' + auto[a.name] : 'auto'}" aria-label="Quantity"></td>
+    <td>${i >= CATALOG.length ? '<button class="btn sm danger" type="button" data-del>Remove</button>' : ''}</td>
+  </tr>`).join('');
+}
+$('#adTbl').addEventListener('input', e => { const tr = e.target.closest('tr[data-i]'); if (!tr) return; const a = S.addons[+tr.dataset.i], f = e.target.dataset.f; a[f] = f === 'on' ? e.target.checked : (f === 'price' ? (e.target.value === '' ? '' : Number(e.target.value)) : e.target.value); refresh(); if (f === 'on' || f === 'unit') renderAddons(); });
+$('#adTbl').addEventListener('click', e => { if (e.target.dataset.del === undefined) return; S.addons.splice(+e.target.closest('tr').dataset.i, 1); renderAddons(); refresh(); });
+$('#btnAddAddon').onclick = () => { S.addons.push({ id: uid(), on: true, name: 'Additional service', invoiceLabel: 'Additional service', price: 0, unit: 'one-time', qty: '' }); renderAddons(); refresh(); };
+
+/* ---------- holidays ---------- */
+function renderHolidays() {
+  const t = $('#holTbl');
+  if (!S.holidays.length) { t.innerHTML = '<tr><td class="empty">No holidays listed.</td></tr>'; return; }
+  t.innerHTML = '<tr><th>Date</th><th>Holiday</th><th></th></tr>' + S.holidays.map((h, i) => `
+  <tr data-i="${i}"><td style="width:170px"><input class="cellin" type="date" data-f="date" value="${esc(h.date)}" aria-label="Holiday date"></td><td><input class="cellin" data-f="name" value="${esc(h.name)}" aria-label="Holiday name"></td><td style="width:90px"><button class="btn sm danger" type="button" data-del>Remove</button></td></tr>`).join('');
+}
+$('#holTbl').addEventListener('input', e => { const tr = e.target.closest('tr[data-i]'); if (!tr) return; S.holidays[+tr.dataset.i][e.target.dataset.f] = e.target.value; refresh(); });
+$('#holTbl').addEventListener('click', e => { if (e.target.dataset.del === undefined) return; S.holidays.splice(+e.target.closest('tr').dataset.i, 1); renderHolidays(); refresh(); });
+$('#btnStdHol').onclick = () => {
+  const ks = S.phases.flatMap(p => [p.start, p.end]).filter(Boolean);
+  const years = ks.length ? [...new Set(ks.map(k => +k.slice(0, 4)))] : [+todayKey().slice(0, 4) + 1];
+  let added = 0;
+  years.forEach(y => standardHolidays(y).forEach(h => { if (!S.holidays.some(x => x.date === h.date)) { S.holidays.push({ id: uid(), ...h }); added++; } }));
+  S.holidays.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+  renderHolidays(); refresh(); toast(added ? 'Added ' + added + ' holidays.' : 'Standard holidays are already listed.');
+};
+
+/* ---------- preview ---------- */
+function sheetA(m) {
+  const rows = layoutA(m);
+  let h = '<table class="sheet"><colgroup><col style="width:27.4%"><col style="width:19.8%"><col style="width:21.8%"><col style="width:16.9%"><col style="width:14.1%"></colgroup>';
+  h += `<tr><td colspan="5" class="title">SERVICE SCHEDULE | ${esc(m.client.name.toUpperCase())}</td></tr>`;
+  rows.forEach(({ a, r }) => {
+    h += '<tr>';
+    h += a ? `<td class="sb ${a.k}">${esc(a.t)}</td>` : '<td></td>';
+    if (r.type === 'head') h += r.cells.map(c => `<td class="g mh">${esc(c)}</td>`).join('');
+    else if (r.type === 'day') h += r.cells.map(c => `<td class="g">${esc(c)}</td>`).join('');
+    else if (r.type === 'total') h += `<td class="mt l"></td><td class="mt"></td><td class="mt lab">MONTHLY TOTAL</td><td class="mt r">${esc(r.cells[3])}</td>`;
+    else h += '<td></td><td></td><td></td><td></td>';
+    h += '</tr>';
+  });
+  return `<img class="paper-logo" src="${LOGO}" alt="Pyramid Pool Monitoring Service">` + h + '</table>';
+}
+function sheetB(m) {
+  const rows = layoutB(m);
+  let h = '<table class="sheet"><colgroup><col style="width:34.7%"><col style="width:23.1%"><col style="width:27.5%"><col style="width:14.7%"></colgroup>';
+  h += `<tr><td colspan="4" class="title">${esc(m.client.name)} | ${m.year} INVOICE SCHEDULE</td></tr>`;
+  h += '<tr><td class="ih">Invoice Payment Schedule</td><td class="ih">Due Date</td><td class="ih">Hours</td><td class="ih">Total</td></tr>';
+  rows.forEach(r => {
+    const c = r.cells || [];
+    if (r.type === 'month') h += `<tr><td class="left">${esc(c[0])}</td><td>${esc(c[1])}</td><td>${esc(c[2])}</td><td>${esc(c[3])}</td></tr>`;
+    else if (r.type === 'hours') h += `<tr><td></td><td></td><td class="th right">Total Hours</td><td class="th">${esc(c[3])}</td></tr>`;
+    else if (r.type === 'line') h += `<tr><td></td><td></td><td class="right lc">${esc(c[2])}</td><td class="lv">${esc(c[3])}</td></tr>`;
+    else if (r.type === 'season') h += `<tr><td></td><td></td><td class="tot top right">Total Season Amount</td><td class="tot top">${esc(c[3])}</td></tr>`;
+    else if (r.type === 'due') h += `<tr><td></td><td></td><td class="tot right">Total Due Upon Signing Contract</td><td class="tot">${esc(c[3])}</td></tr>`;
+    else h += '<tr><td></td><td></td><td></td><td></td></tr>';
+  });
+  return `<img class="paper-logo" src="${LOGO}" alt="Pyramid Pool Monitoring Service">` + h + '</table>';
+}
+function renderPaper() {
+  const m = lastModel, p = $('#paper');
+  if (!m || !m.months) { p.innerHTML = '<p style="font:13px var(--f-ui);color:#555;margin:20px 0;text-align:center">Fix the items listed above to see the attachments.</p>'; return; }
+  p.innerHTML = tab === 'A' ? sheetA(m) : sheetB(m);
+}
+let raf = 0;
+function refresh() { cancelAnimationFrame(raf); raf = requestAnimationFrame(compute); }
+function compute() {
+  const m = buildModel(S); lastModel = m.months ? m : null;
+  $('#sumName').textContent = S.client.name || 'New quote';
+  const pill = $('#sumPill'), rev = $('#review');
+  if (m.months) {
+    $('#sumRange').textContent = longDate(m.seasonStart) + ' – ' + longDate(m.seasonEnd) + ' · ' + m.serviceDays + ' service days · ' + money0(m.rate) + '/hr';
+    $('#kHours').textContent = m.totals.hours.toLocaleString('en-US', { minimumFractionDigits: 2 });
+    $('#kTotal').textContent = money(m.totals.seasonTotal); $('#kDue').textContent = money(m.totals.dueAtSigning); $('#kHol').textContent = money(m.totals.holiday);
+  } else { $('#sumRange').textContent = 'Add a schedule to calculate.'; ['#kHours', '#kTotal', '#kDue', '#kHol'].forEach((s, i) => $(s).textContent = i ? '$0.00' : '0'); }
+  const errs = m.errors || [], warns = m.warnings || [];
+  if (errs.length) { pill.className = 'pill bad'; pill.textContent = errs.length + ' to fix'; }
+  else if (warns.length) { pill.className = 'pill warn'; pill.textContent = 'Ready · ' + warns.length + ' to review'; }
+  else { pill.className = 'pill ok'; pill.textContent = 'Ready · invoices reconcile'; }
+  rev.innerHTML = (errs.length || warns.length)
+    ? '<b>' + (errs.length ? 'Fix before exporting' : 'Review before sending') + '</b><ul>' + errs.map(x => `<li class="e">${esc(x)}</li>`).join('') + warns.map(x => `<li class="w">${esc(x)}</li>`).join('') + '</ul>'
+    : (m.months ? '<b style="color:var(--ok)">Monthly invoices add up to the season total (' + money(m.totals.seasonTotal) + ').</b>' : '');
+  $('#btnPdf').disabled = $('#btnXlsx').disabled = !m.months || errs.length > 0;
+  renderPaper();
+  const qtyInputs = document.querySelectorAll('#adTbl input[data-f="qty"]');
+  if (m.addons) qtyInputs.forEach(inp => { const a = S.addons[+inp.closest('tr').dataset.i]; const hit = m.addons.find(x => x.name === a.name); inp.placeholder = hit ? 'auto ' + hit.autoQty : 'auto'; });
+  store.set('pyramid-quote-current', JSON.stringify(S));
+}
+$('#tabA').onclick = () => { tab = 'A'; $('#tabA').setAttribute('aria-selected', 'true'); $('#tabB').setAttribute('aria-selected', 'false'); renderPaper(); };
+$('#tabB').onclick = () => { tab = 'B'; $('#tabB').setAttribute('aria-selected', 'true'); $('#tabA').setAttribute('aria-selected', 'false'); renderPaper(); };
+
+function renderAll() { syncFields(); renderPhases(); renderOverrides(); renderAddons(); renderHolidays(); refresh(); }
+
+/* ---------- HubSpot import ---------- */
+/* Live HubSpot retrieval: token always remains in server-only environment. */
+let hubspotRows = [];
+
+const normalizeHubspotKey = x => String(x || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+function submissionAsNotification(row) {
+  const values = new Map((row.values || []).map(v => [normalizeHubspotKey(v.name), String(v.value ?? '')]));
+  const take = (...aliases) => {
+    for (const alias of aliases) { const value = values.get(normalizeHubspotKey(alias)); if (value) return value; }
+    return '';
+  };
+  const vague = (...parts) => {
+    for (const [key, value] of values) if (parts.every(part => key.includes(part)) && value) return value;
+    return '';
+  };
+  const city = take('community_city','community city','city');
+  const state = take('community_state_region','community state/region','state','state_region') || vague('community','state');
+  const zip = take('zip','zip_code','zipcode','postalcode','community_zip','community_zip_code');
+  const lines = [
+    ['First Name', take('firstname','first_name')],
+    ['Last name', take('lastname','last_name')],
+    ['Email', take('email')],
+    ['Phone Number', take('phone','phone_number','phonenumber')],
+    ['Community Name', take('community_name','communityname','name_of_community') || vague('community','name')],
+    ['Property Management Company Name', take('property_management_company_name','propertymanagementcompanyname') || vague('management','company')],
+    ['Community Address', take('address','community_address','communityaddress') || vague('community','address')],
+    ['Community City', city],
+    ['Community State/Region', [state,zip].filter(Boolean).join(' ')],
+    ['How many pools', take('how_many_pools','number_of_pools','howmanypools') || vague('pools')],
+    ['Desired Start Date', looseDateKey(take('desired_start_date','desiredstartdate') || vague('desired','start'))],
+    ['Desired End Date', looseDateKey(take('desired_end_date','desiredenddate') || vague('desired','end'))],
+    ['In addition to pool monitoring (select all that apply)', take('add_on_services') || vague('add','services')],
+    ['Select which days service is needed and hours/day.', take('select_which_days_service_is_being_requested') || vague('select','days')],
+    ['Provide a description of the days and hours from Monday through Sunday.',
+      take('days_and_hours_services_are_being_requested','requested_hours','service_hours') || vague('description','days') || vague('hours','service')],
+  ];
+  return lines.map(([name, value]) => name + '\n' + value).join('\n') + '\nView submission in HubSpot';
+}
+$('#btnLiveHubspot').onclick = () => { $('#hubspotLiveModal').hidden = false; };
+$('#hubspotLiveCancel').onclick = () => { $('#hubspotLiveModal').hidden = true; };
+$('#hubspotRefresh').onclick = async () => {
+  const msg = $('#hubspotLiveMsg');
+  msg.textContent = 'Loading HubSpot submissions…';
+  try {
+    const response = await fetch('/api/submissions?form=' + encodeURIComponent($('#hubspotForm').value), {
+      method:'GET', credentials:'same-origin', cache:'no-store'
+    });
+
+    if (!response.ok) throw new Error(response.status === 503 ? 'HubSpot token is not configured on this Quote Builder project.' : response.status === 403 ? 'Open an authenticated Preview deployment of the Quote Builder.' : 'Request failed (' + response.status + ').');
+    const data = await response.json();
+    hubspotRows = Array.isArray(data.results) ? data.results : [];
+    const sel = $('#hubspotPick'); sel.replaceChildren(new Option('Choose a submission…',''));
+    hubspotRows.forEach((entry, i) => {
+      const label = (entry.values || []).find(v => normalizeHubspotKey(v.name) === 'email');
+      const stamp = entry.submittedAt ? new Date(entry.submittedAt).toLocaleDateString() : 'Date unavailable';
+      sel.add(new Option(stamp + ' · ' + (label ? label.value : 'Submission ' + (i+1)),String(i)));
+    });
+    msg.textContent = hubspotRows.length + ' submissions loaded. Nothing has been modified in HubSpot.';
+  } catch (e) { msg.textContent = 'Unable to load: ' + e.message; }
+};
+$('#hubspotUse').onclick = () => {
+  const idx = $('#hubspotPick').value;
+  if (!idx || !hubspotRows[Number(idx)]) { $('#hubspotLiveMsg').textContent = 'Select a submission.'; return; }
+  $('#hsText').value = submissionAsNotification(hubspotRows[Number(idx)]);
+  $('#hubspotLiveModal').hidden = true;
+  $('#hsGo').click();
+  toast('HubSpot submission imported. Verify all fields, service dates, rate, staffing and schedule before exporting.', 7000);
+};
+$('#btnImport').onclick = () => { $('#hsModal').hidden = false; $('#hsMsg').textContent = ''; $('#hsMsg').className = 'msg'; $('#hsText').focus(); };
+$('#hsCancel').onclick = () => { $('#hsModal').hidden = true; };
+$('#hsGo').onclick = () => {
+  const f = parseHubspot($('#hsText').value);
+  if (!f.community && !f.first) { $('#hsMsg').textContent = 'No form fields found. Paste the whole notification email.'; $('#hsMsg').className = 'msg bad'; return; }
+  const loc = splitStateZip(f.stateZip);
+  const s = freshState();
+  s.client = { name: f.community || f.company || '', contact: [f.first, f.last].filter(Boolean).join(' '), email: f.email || '', phone: fmtPhone(f.phone), address: f.address || '', city: f.city || '', state: loc.state || '', zip: loc.zip, company: f.pm || '', description: 'Pool Monitoring Services', requested: [f.hours, f.days && !/custom/i.test(f.days) ? '(' + f.days + ')' : ''].filter(Boolean).join(' ') };
+  const start = looseDateKey(f.start), end = looseDateKey(f.end);
+  const parsed = parseRequestedHours(f.hours || '');
+  s.phases = parsed.length ? parsed.map((p, i) => { const ph = newPhase(parsed.length > 1 ? 'Requested pattern ' + (i + 1) : 'Requested schedule', start, end); p.days.forEach((on, d) => { ph.days[d] = { on, start: minToHHMM(p.start), end: minToHHMM(p.end), pools: 1 }; }); return ph; })
+    : [newPhase('Requested schedule', start, end)];
+  const years = [start, end].filter(Boolean).map(k => +k.slice(0, 4));
+  if (years.length) { s.holidays = []; [...new Set(years)].forEach(y => standardHolidays(y).forEach(h => s.holidays.push({ id: uid(), ...h }))); }
+  const svc = (f.services || '').toLowerCase();
+  s.addons.forEach(a => { const n = a.name.toLowerCase(); a.on = (/record/.test(n) && /record/.test(svc)) || (/clean/.test(n) && /clean|janitor|restroom|bathroom/.test(svc)) || (/ph\b/.test(n) && /\bph\b|chemical|water/.test(svc)); });
+  S = s; renderAll(); $('#hsModal').hidden = true; $('#hsText').value = '';
+  const notes = [];
+  notes.push(parsed.length ? 'Schedule drafted from “' + (f.hours || '').slice(0, 60) + '”.' : 'Could not read the requested hours. Set the days and times by hand.');
+  if (Number(f.pools) > 1) notes.push('Form lists ' + f.pools + ' pools: set Pools on the busy days.');
+  if (start && +start.slice(0, 4) <= +todayKey().slice(0, 4)) notes.push('Requested dates are for ' + start.slice(0, 4) + '. Use "Move all dates +1 year" if quoting next season.');
+  toast(notes.join(' '), 9000);
+};
+
+/* ---------- new / drafts ---------- */
+$('#btnNew').onclick = () => { $('#newModal').hidden = false; };
+$('#newCancel').onclick = () => { $('#newModal').hidden = true; };
+$('#newGo').onclick = () => { S = freshState(); renderAll(); $('#newModal').hidden = true; };
+function drafts() { try { return JSON.parse(store.get('pyramid-quote-drafts')) || {}; } catch (e) { return {}; } }
+function renderDrafts() { const d = drafts(), names = Object.keys(d).sort(); $('#draftSel').innerHTML = '<option value="">Saved drafts' + (names.length ? ' (' + names.length + ')' : '') + '…</option>' + names.map(n => `<option>${esc(n)}</option>`).join(''); }
+$('#btnSave').onclick = () => { const name = (S.client.name || 'Untitled') + (lastModel ? ' ' + lastModel.year : ''); const d = drafts(); d[name] = S; store.set('pyramid-quote-drafts', JSON.stringify(d)); renderDrafts(); toast('Draft saved as “' + name + '” in this browser.'); };
+$('#draftSel').onchange = e => { const d = drafts()[e.target.value]; if (d) { S = JSON.parse(JSON.stringify(d)); renderAll(); toast('Loaded “' + e.target.value + '”.'); } e.target.value = ''; };
+
+/* ---------- toast ---------- */
+let tt = 0;
+function toast(msg, ms = 3500) { const t = $('#toast'); t.textContent = msg; t.hidden = false; clearTimeout(tt); tt = setTimeout(() => { t.hidden = true; }, ms); }
+
+/* ---------- PDF (vector, mirrors the Pyramid quote layout) ---------- */
+const RGB = h => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
+function cell(doc, x, y, w, h, text, o = {}) {
+  if (o.fill) { doc.setFillColor(...RGB(o.fill)); doc.rect(x, y, w, h, 'F'); }
+  doc.setDrawColor(...RGB(o.lineColor || '#000000'));
+  const b = o.border === true ? { t: 1, r: 1, b: 1, l: 1 } : (o.border || {});
+  const lw = o.lw || 0.5;
+  if (b.t) { doc.setLineWidth(b.t === 2 ? 1.2 : lw); doc.line(x, y, x + w, y); }
+  if (b.b) { doc.setLineWidth(b.b === 2 ? 1.2 : lw); doc.line(x, y + h, x + w, y + h); }
+  if (b.l) { doc.setLineWidth(lw); doc.line(x, y, x, y + h); }
+  if (b.r) { doc.setLineWidth(lw); doc.line(x + w, y, x + w, y + h); }
+  if (text === '' || text === null || text === undefined) return;
+  const size = o.size || 7.5;
+  doc.setFont('helvetica', o.bold ? 'bold' : o.italic ? 'italic' : 'normal'); doc.setFontSize(size);
+  doc.setTextColor(...RGB(o.color || '#111111'));
+  const lines = String(text).split('\n').flatMap(l => doc.splitTextToSize(l, w - 6));
+  const lh = size * 1.2, align = o.align || 'center';
+  const tx = align === 'left' ? x + 3 : align === 'right' ? x + w - 3 : x + w / 2;
+  const blockH = lines.length * lh;
+  const ty = o.valign === 'bottom' ? y + h - blockH + size * 0.85 - 1.5 : y + (h - blockH) / 2 + size * 0.85;
+  doc.text(lines, tx, ty, { align, lineHeightFactor: 1.2 });
+}
+function linesFor(doc, text, w, size = 7.5, bold) { if (!text) return 1; doc.setFont('helvetica', bold ? 'bold' : 'normal'); doc.setFontSize(size); return String(text).split('\n').flatMap(l => doc.splitTextToSize(l, w - 6)).length; }
+const PAGE = { W: 612, H: 792, X: 40, TOP: 34, BOTTOM: 760 };
+function header(doc, title, cols) {
+  const W = PAGE.W - PAGE.X * 2, lw = 300, lh = lw * LOGO_RATIO;
+  if (LOGO_DATA) doc.addImage(LOGO_DATA, 'PNG', (PAGE.W - lw) / 2, PAGE.TOP, lw, lh);
+  const y = PAGE.TOP + lh + 8;
+  cell(doc, PAGE.X, y, W, 17, title, { fill: '#d9d9d9', border: true, lw: 1, bold: true, size: 9.5 });
+  return y + 17;
+}
+function drawA(doc, m) {
+  const W = PAGE.W - PAGE.X * 2, ratio = [34.25, 24.75, 27.25, 21, 17.63], sum = ratio.reduce((a, b) => a + b);
+  const cw = ratio.map(r => r / sum * W), cx = cw.map((_, i) => PAGE.X + cw.slice(0, i).reduce((a, b) => a + b, 0));
+  let y = header(doc, 'SERVICE SCHEDULE | ' + m.client.name.toUpperCase());
+  layoutA(m).forEach(({ a, r }) => {
+    let nl = 1;
+    if (a) nl = Math.max(nl, linesFor(doc, a.t, cw[0], 7.5, a.k !== 'value'));
+    (r.cells || []).forEach((c, i) => { nl = Math.max(nl, linesFor(doc, c, cw[i + 1], 7.5, r.type === 'head')); });
+    const h = Math.max(11, nl * 9 + 2.5);
+    if (y + h > PAGE.BOTTOM) { doc.addPage(); y = PAGE.TOP; }
+    if (a) cell(doc, cx[0], y, cw[0], h, a.t, { border: true, align: 'left', fill: a.k === 'head' ? '#d9d9d9' : a.k === 'label' ? '#f2f2f2' : null, bold: a.k === 'head' || a.k === 'label', italic: a.k === 'italic', color: a.k === 'link' ? '#1155cc' : null, valign: a.k === 'head' ? 'bottom' : 'middle' });
+    if (r.type === 'head') r.cells.forEach((c, i) => cell(doc, cx[i + 1], y, cw[i + 1], h, c, { fill: '#d9d9d9', border: { t: 1, l: 1, r: 1, b: 2 }, bold: true }));
+    else if (r.type === 'day') r.cells.forEach((c, i) => cell(doc, cx[i + 1], y, cw[i + 1], h, c, { border: true }));
+    else if (r.type === 'total') {
+      cell(doc, cx[1], y, cw[1] + cw[2], h, '', { fill: '#d9d9d9', border: { t: 1, b: 1, l: 1 } });
+      cell(doc, cx[3], y, cw[3], h, 'MONTHLY TOTAL', { fill: '#d9d9d9', border: { t: 1, b: 1 }, bold: true });
+      cell(doc, cx[4], y, cw[4], h, r.cells[3], { fill: '#d9d9d9', border: true, bold: true });
+    }
+    y += h;
+  });
+}
+function drawB(doc, m) {
+  const W = PAGE.W - PAGE.X * 2, ratio = [38.38, 25.5, 30.38, 16.25], sum = ratio.reduce((a, b) => a + b);
+  const cw = ratio.map(r => r / sum * W), cx = cw.map((_, i) => PAGE.X + cw.slice(0, i).reduce((a, b) => a + b, 0));
+  let y = header(doc, m.client.name + ' | ' + m.year + ' INVOICE SCHEDULE');
+  ['Invoice Payment Schedule', 'Due Date', 'Hours', 'Total'].forEach((t, i) => cell(doc, cx[i], y, cw[i], 13, t, { fill: '#e36c09', border: true, bold: true, size: 8.5 }));
+  y += 13;
+  layoutB(m).forEach(r => {
+    const c = r.cells || [];
+    const nl = Math.max(1, ...c.map((t, i) => linesFor(doc, t, cw[i], 8, r.type === 'season' || r.type === 'due')));
+    const h = r.type === 'blank' ? 12 : Math.max(13, nl * 9.6 + 3);
+    if (r.type === 'month') { cell(doc, cx[0], y, cw[0], h, c[0], { align: 'left', size: 8 }); [1, 2, 3].forEach(i => cell(doc, cx[i], y, cw[i], h, c[i], { size: 8 })); }
+    else if (r.type === 'hours') { cell(doc, cx[2], y, cw[2], h, 'Total Hours', { fill: '#fce5cd', border: { t: 2 }, align: 'right', size: 8 }); cell(doc, cx[3], y, cw[3], h, c[3], { fill: '#fce5cd', border: { t: 2 }, size: 8 }); }
+    else if (r.type === 'line') { cell(doc, cx[2], y, cw[2], h, c[2], { align: 'right', valign: 'bottom', size: 8 }); cell(doc, cx[3], y, cw[3], h, c[3], { fill: '#efefef', border: { b: 1 }, lineColor: '#c9c9c9', valign: 'bottom', size: 8 }); }
+    else if (r.type === 'season' || r.type === 'due') { const top = r.type === 'season' ? { t: 1 } : {}; cell(doc, cx[2], y, cw[2], h, c[2], { fill: '#cfe2f3', border: top, bold: true, align: 'right', size: 8.5 }); cell(doc, cx[3], y, cw[3], h, c[3], { fill: '#cfe2f3', border: top, bold: true, size: 8.5 }); }
+    y += h;
+  });
+}
+function buildPdf(m) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'pt', format: 'letter' });
+  drawA(doc, m); doc.addPage(); drawB(doc, m);
+  const n = doc.getNumberOfPages();
+  for (let i = 1; i <= n; i++) { doc.setPage(i); doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(90, 90, 90); doc.text(String(i), PAGE.W - PAGE.X, PAGE.H - 18, { align: 'right' }); }
+  return doc.output('arraybuffer');
+}
+
+/* ---------- Excel (styled, with live formulas) ---------- */
+async function buildXlsx(m) {
+  const wb = new ExcelJS.Workbook(); wb.creator = 'Pyramid Quote Builder';
+  const logo = LOGO_DATA ? wb.addImage({ base64: LOGO_DATA.split(',')[1], extension: 'png' }) : null;
+  const thin = { style: 'thin', color: { argb: 'FF000000' } }, med = { style: 'medium', color: { argb: 'FF000000' } }, soft = { style: 'thin', color: { argb: 'FFC9C9C9' } };
+  const all = { top: thin, left: thin, bottom: thin, right: thin };
+  const fill = hex => ({ type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + hex.replace('#', '').toUpperCase() } });
+  const font = (o = {}) => ({ name: 'Tahoma', size: 10, ...o });
+  const setup = { paperSize: 1, orientation: 'portrait', fitToPage: true, fitToWidth: 1, fitToHeight: 0, horizontalCentered: true, margins: { left: 0.4, right: 0.4, top: 0.5, bottom: 0.5, header: 0.2, footer: 0.2 } };
+  const dateOf = k => new Date(Date.UTC(+k.slice(0, 4), +k.slice(5, 7) - 1, +k.slice(8, 10)));
+  const SA = 'Attachment A | Service Schedule';
+
+  const A = wb.addWorksheet(SA, { views: [{ showGridLines: false }], pageSetup: setup });
+  A.columns = [{ width: 34.25 }, { width: 24.75 }, { width: 27.25 }, { width: 21 }, { width: 17.63 }];
+  A.getRow(1).height = 120;
+  if (logo !== null) A.addImage(logo, { tl: { col: 0.55, row: 0.12 }, ext: { width: 620, height: Math.round(620 * LOGO_RATIO) } });
+  A.mergeCells('A2:E2');
+  Object.assign(A.getCell('A2'), { value: 'SERVICE SCHEDULE | ' + m.client.name.toUpperCase() });
+  A.getCell('A2').style = { font: font({ bold: true, size: 12 }), fill: fill('#d9d9d9'), alignment: { horizontal: 'center', vertical: 'middle' }, border: { top: med, left: med, bottom: med, right: med } };
+  A.getRow(2).height = 24;
+  const monthTotalRow = {};
+  layoutA(m).forEach(({ a, r }, i) => {
+    const rn = 3 + i, row = A.getRow(rn);
+    if (a) {
+      const c = row.getCell(1); c.value = a.t;
+      c.style = { font: font({ bold: a.k === 'head' || a.k === 'label', italic: a.k === 'italic', color: a.k === 'link' ? { argb: 'FF1155CC' } : undefined, underline: a.k === 'link' }), border: all, alignment: { vertical: a.k === 'head' ? 'bottom' : 'middle', wrapText: true },
+        fill: a.k === 'head' ? fill('#d9d9d9') : a.k === 'label' ? fill('#f2f2f2') : undefined };
+    }
+    const ctr = { horizontal: 'center', vertical: 'middle', wrapText: true };
+    if (r.type === 'head') r.cells.forEach((t, j) => { const c = row.getCell(j + 2); c.value = t; c.style = { font: font({ bold: true }), fill: fill('#d9d9d9'), alignment: ctr, border: { top: thin, left: thin, right: thin, bottom: med } }; });
+    else if (r.type === 'day') {
+      const d = r.day, cs = [row.getCell(2), row.getCell(3), row.getCell(4), row.getCell(5)];
+      cs[0].value = r.cells[0]; cs[1].value = dateOf(d.key); cs[1].numFmt = 'mmmm d, yyyy';
+      cs[2].value = d.hours > 0 ? d.text : null; cs[3].value = d.hours > 0 ? d.hours : null; cs[3].numFmt = '0.00';
+      cs.forEach(c => { c.font = font(); c.alignment = ctr; c.border = all; });
+      const lines = Math.max(r.cells[0].split('\n').length, (d.text || '').split('\n').length);
+      if (lines > 1) row.height = 13 * lines + 2;
+    } else if (r.type === 'total') {
+      const first = 3 + i - (r.lastDayRow - r.firstDayRow + 1);
+      [2, 3, 4, 5].forEach(j => { const c = row.getCell(j); c.fill = fill('#d9d9d9'); c.font = font({ bold: j >= 4 }); c.alignment = ctr; c.border = { top: thin, bottom: thin, left: j === 2 || j === 5 ? thin : undefined, right: j === 5 ? thin : undefined }; });
+      row.getCell(4).value = 'MONTHLY TOTAL';
+      row.getCell(5).value = { formula: `SUM(E${first}:E${rn - 1})`, result: r.month.hours }; row.getCell(5).numFmt = '0.00';
+      monthTotalRow[r.month.ym] = rn;
+    }
+  });
+
+  const B = wb.addWorksheet('Attachment B | Invoice Schedule', { views: [{ showGridLines: false }], pageSetup: setup });
+  B.columns = [{ width: 38.38 }, { width: 25.5 }, { width: 30.38 }, { width: 16.25 }];
+  B.getRow(1).height = 120;
+  if (logo !== null) B.addImage(logo, { tl: { col: 0.3, row: 0.12 }, ext: { width: 620, height: Math.round(620 * LOGO_RATIO) } });
+  B.mergeCells('A2:D2');
+  B.getCell('A2').value = m.client.name + ' | ' + m.year + ' INVOICE SCHEDULE';
+  B.getCell('A2').style = { font: font({ bold: true, size: 12 }), fill: fill('#d9d9d9'), alignment: { horizontal: 'center', vertical: 'middle' }, border: all };
+  ['Invoice Payment Schedule', 'Due Date', 'Hours', 'Total'].forEach((t, j) => { const c = B.getRow(3).getCell(j + 1); c.value = t; c.style = { font: font({ bold: true, size: 11 }), fill: fill('#e36c09'), alignment: { horizontal: 'center', vertical: 'middle' }, border: all }; });
+  const rows = layoutB(m), first = 4, nM = m.billed.length, thRow = first + nM;
+  let rn = first; const pos = {};
+  rows.forEach(r => { if (r.type === 'line' && r.key) pos[r.key] = rn; if (r.type === 'line' && !r.key) pos.lastLine = rn; if (r.type === 'season') pos.season = rn; rn++; });
+  pos.holiday = pos.holiday || thRow + 1;
+  rn = first;
+  rows.forEach((r, i) => {
+    const row = B.getRow(rn), c = r.cells || [];
+    const ctr = { horizontal: 'center', vertical: 'bottom', wrapText: true }, rgt = { horizontal: 'right', vertical: 'bottom', wrapText: true };
+    if (r.type === 'month') {
+      const mo = r.mo;
+      let f = `C${rn}*${m.rate}`; if (mo.holidayHours) f += `+(${mo.holidayHours}*${m.premium})`; mo.addonParts.forEach(a => { f += '+' + a; }); if (i === 0) f += `+D${pos.admin}`;
+      row.getCell(1).value = c[0]; row.getCell(1).style = { font: font(), alignment: { horizontal: 'left' } };
+      row.getCell(2).value = i === 0 ? m.firstDue : dateOf(keyOf(mo.year, mo.month, 1)); row.getCell(2).style = { font: font(), alignment: { horizontal: 'center' }, numFmt: 'mmmm d, yyyy' };
+      row.getCell(3).value = { formula: `'${SA}'!E${monthTotalRow[mo.ym]}`, result: mo.hours }; row.getCell(3).style = { font: font(), alignment: { horizontal: 'center' }, numFmt: '0.00' };
+      row.getCell(4).value = { formula: f, result: mo.invoice }; row.getCell(4).style = { font: font(), alignment: { horizontal: 'center' }, numFmt: '"$"#,##0.00' };
+    } else if (r.type === 'hours') {
+      row.getCell(3).value = 'Total Hours'; row.getCell(4).value = { formula: `SUM(C${first}:C${thRow - 1})`, result: m.totals.hours };
+      row.getCell(3).style = { font: font(), fill: fill('#fce5cd'), alignment: rgt, border: { top: med } };
+      row.getCell(4).style = { font: font(), fill: fill('#fce5cd'), alignment: ctr, border: { top: med }, numFmt: '0.00' };
+    } else if (r.type === 'line') {
+      let v;
+      if (r.key === 'subtotal') v = { formula: `D${thRow}*${m.rate}`, result: m.totals.labor };
+      else if (r.key === 'admin') v = m.adminFee;
+      else if (r.key === 'holiday') v = { formula: `${m.totals.holidayHours}*${m.premium}`, result: m.totals.holiday };
+      else v = { formula: `${r.addon.qty}*${r.addon.price}`, result: r.addon.total };
+      row.getCell(3).value = c[2]; row.getCell(3).style = { font: font(), alignment: rgt };
+      row.getCell(4).value = v; row.getCell(4).style = { font: font(), fill: fill('#efefef'), alignment: ctr, border: { bottom: soft }, numFmt: '"$"#,##0.00' };
+      if (c[2].includes('\n')) row.height = 27;
+    } else if (r.type === 'season' || r.type === 'due') {
+      row.getCell(3).value = c[2];
+      row.getCell(4).value = r.type === 'season' ? { formula: `SUM(D${thRow + 1}:D${pos.season - 1})`, result: m.totals.seasonTotal } : { formula: `D${first}`, result: m.totals.dueAtSigning };
+      const top = r.type === 'season' ? { top: thin } : {};
+      row.getCell(3).style = { font: font({ bold: true, size: 11 }), fill: fill('#cfe2f3'), alignment: rgt, border: top };
+      row.getCell(4).style = { font: font({ bold: true, size: 11 }), fill: fill('#cfe2f3'), alignment: ctr, border: top, numFmt: '"$"#,##0.00' };
+    }
+    rn++;
+  });
+  return await wb.xlsx.writeBuffer();
+}
+
+/* ---------- downloads ---------- */
+async function offer(filename, data) {
+  let dl = null;
+  try { dl = window.claude && window.claude.use ? await window.claude.use('downloads') : null; } catch (e) { dl = null; }
+  if (!dl) {
+    if (window.claude && window.claude.use) { toast('Downloads are not available in this view.', 6000); return; }
+    const type = filename.endsWith('.pdf') ? 'application/pdf' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+    const blob = data instanceof Blob ? data : new Blob([data], { type });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = filename;
+    document.body.appendChild(a); a.click();
+    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+    toast('Downloaded ' + filename); return;
+  }
+  try { await dl.save({ filename, data }); toast('Saved ' + filename); }
+  catch (e) { const c = e && e.code; toast(c === 'declined' ? 'Download cancelled.' : c === 'rate_limited' ? 'A download prompt is already open.' : 'Could not save the file (' + (c || 'error') + ').', 5000); }
+}
+const fileBase = m => (m.client.name || 'Pyramid').replace(/[\\/:*?"<>|]+/g, ' ').trim() + ' ' + m.year + ' Quote';
+$('#btnPdf').onclick = async () => { const m = buildModel(S); if (!m.months || m.errors.length) return; try { await offer(fileBase(m) + '.pdf', buildPdf(m)); } catch (e) { toast('PDF could not be built: ' + e.message, 6000); } };
+$('#btnXlsx').onclick = async () => { const m = buildModel(S); if (!m.months || m.errors.length) return; try { await offer(fileBase(m) + '.xlsx', await buildXlsx(m)); } catch (e) { toast('Excel file could not be built: ' + e.message, 6000); } };
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { $('#hsModal').hidden = true; $('#hubspotLiveModal').hidden = true; $('#newModal').hidden = true; } });
+renderDrafts(); renderAll();
+window.__pq = { buildPdf: () => buildPdf(buildModel(S)), buildXlsx: () => buildXlsx(buildModel(S)), state: () => S };
+})();
+</script>
+
+</body>
+</html>

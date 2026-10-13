@@ -33,3 +33,36 @@ test('import parser keeps named quote fields',()=>{
   const parsed=parseHubspot('First Name\nJane\nLast name\nDoe\nEmail\njane@example.com\nCommunity Name\nNorth Test HOA\nCommunity City\nOrlando\nCommunity State/Region\nFL 32801\nDesired Start Date\n06/01/2027\nDesired End Date\n06/30/2027\nView submission in HubSpot');
   assert.equal(parsed.community,'North Test HOA');assert.equal(parsed.email,'jane@example.com');
 });
+
+test('HubSpot epoch-millisecond service dates normalize to ISO without timezone shift',()=>{
+  const epoch=String(Date.parse('2027-05-16T00:00:00.000Z'));
+  assert.equal(moduleShim.exports.looseDateKey(epoch),'2027-05-16');
+  assert.equal(moduleShim.exports.looseDateKey('2027-05-16'),'2027-05-16');
+});
+test('real HubSpot submission field names prefill address and dates safely',()=>{
+  const htmlSource=readFileSync(new URL('../index.html', import.meta.url),'utf8');
+  const start=htmlSource.indexOf('const normalizeHubspotKey');
+  const end=htmlSource.indexOf("$('#btnLiveHubspot').onclick");
+  assert.ok(start>=0 && end>start);
+  const fn=new Function('row','looseDateKey',htmlSource.slice(start,end)+'; return submissionAsNotification(row);');
+  const values={
+    firstname:'Taylor',lastname:'Jones',email:'sample@example.org',
+    community_name:'Test Community',address:'123 Test Street',city:'Orlando',state:'FL',
+    of_pools:'2',desired_start_date:String(Date.parse('2027-06-01T00:00:00Z')),
+    desired_end_date:String(Date.parse('2027-09-06T00:00:00Z')),
+    days_and_hours_services_are_being_requested:'Monday-Friday 10am-6pm',
+    select_which_days_service_is_being_requested:'Monday through Friday',
+    add_on_services:'Routine cleaning'
+  };
+  const notification=fn({values:Object.entries(values).map(([name,value])=>({name,value}))},moduleShim.exports.looseDateKey);
+  const parsed=parseHubspot(notification);
+  assert.equal(parsed.community,'Test Community');
+  assert.equal(parsed.address,'123 Test Street');
+  assert.equal(parsed.city,'Orlando');
+  assert.equal(moduleShim.exports.splitStateZip(parsed.stateZip).state,'FL');
+  assert.equal(parsed.pools,'2');
+  assert.equal(parsed.start,'2027-06-01');
+  assert.equal(parsed.end,'2027-09-06');
+  assert.match(parsed.hours,/Monday-Friday 10am-6pm/);
+  assert.match(parsed.services,/Routine cleaning/);
+});

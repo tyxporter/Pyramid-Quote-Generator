@@ -29,6 +29,14 @@ test('browser renders and exports reconciled PDF plus formula-based Excel workbo
     await page.route('**/pyramid-quote-builder.vercel.app/logo.png', route => route.fulfill({body:fakeLogo,contentType:'image/png',headers:{'access-control-allow-origin':'*'}}));
     await page.route('**/fonts.googleapis.com/**', route => route.fulfill({body:'',contentType:'text/css'}));
     await page.goto('http://127.0.0.1:'+port+'/',{waitUntil:'load'});
+    let prompts = 0;
+    page.on('dialog', async dialog => { prompts++; await dialog.dismiss(); });
+    await page.locator('#btnLiveHubspot').click();
+    await page.locator('#hubspotRefresh').click();
+    await page.waitForFunction(()=>document.querySelector('#hubspotLiveMsg')?.textContent?.includes('Unable to load'));
+    assert.equal(prompts,0,'HubSpot import must not ask for a shared admin key');
+    await page.locator('#hubspotLiveCancel').click();
+
     const jsErrors = [];
     page.on('pageerror',e=>jsErrors.push(e.message));
     await page.evaluate(()=>{

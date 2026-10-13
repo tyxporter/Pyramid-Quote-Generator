@@ -1,52 +1,58 @@
-# Pyramid Quote Generator — Recovery & HubSpot Intake (October 2026)
+# Pyramid Quote Generator — HubSpot integration
 
-This repository is the **review branch** for Pyramid's existing Vercel quote generator. The previously deployed original is archived at \`recovery/original-2026-10-08.html\`. Nothing here should be promoted to production until automated PDF/Excel checks pass and original branded logo assets are safely restored or bundled.
+## Authentication model
 
-## Source of truth
+- Pyramid team members sign in to **Vercel Authentication** to access protected Quote Builder Preview deployments. The project currently enables Standard Protection for `*.vercel.app` deployment URLs.
+- The Quote Builder browser retrieves submissions through `GET /api/submissions` on the same origin; it does not prompt for a shared admin key.
+- The Vercel server alone uses `HUBSPOT_PRIVATE_APP_TOKEN` for HubSpot's submissions endpoint. This token is never included in the HTML or sent to browsers.
+- The server refuses HubSpot submissions on Production and custom domains even if the token is present. Production availability requires a separate, reviewed authentication setup.
+- The API supports **read-only** retrieval of verified 2025 and 2026 forms. It does not create deals, edit CRM records, send messages, or automatically ingest submissions without a user refresh.
 
-HubSpot remains the source of truth for deals, contacts, and submissions. The generator creates a draft service schedule (Attachment A), invoice schedule (Attachment B), and local exports. The new live import is intentionally **read-only**, with no auto-email or CRM writes.
+## Correct Vercel project
 
-## Verified quote form identifiers
+**Team:** porter-made
 
-- \`2026\` published intake form GUID: \`2c971242-d2df-4eaa-8acd-7a9b89eeddca\`
-- \`2025\` published intake form GUID: \`49e1ff28-3101-42db-91a3-8230d0587788\`
+**Project:** [pyramid-quote-builder](https://vercel.com/porter-made/pyramid-quote-builder)
 
-The form selector maps only these two IDs. Do not broaden access until a form is verified.
+**GitHub branch:** `recovery/quote-generator-oct-2026`
 
-## Configure Vercel integration securely
+The HubSpot credential was mistakenly installed in the **different** project `pyramid-opportunity-agent`. It has to be added to this project's Preview environment instead. The Quote Builder project did not expose any environment variable names when inspected Oct 13, 2026.
 
-In Vercel > **porter made** > **pyramid-quote-builder** > Settings > Environment Variables, set these values for **Preview** first:
+In Vercel: Quote Builder → Settings → Environment Variables:
 
-1. \`HUBSPOT_PRIVATE_APP_TOKEN\` — a least-privilege HubSpot private app token with permission to read forms and form submissions (confirm available scopes). Create and copy it *in HubSpot directly into Vercel*, never into GitHub/chat/client-side HTML.
-2. \`QUOTE_ADMIN_KEY\` — a separate long random secret (minimum 20 characters) for authorized internal users. This is **not** your HubSpot password or token. Set it in Vercel only; share the access key through a secure password manager with Felicia, not in email or source control.
+- Key: `HUBSPOT_PRIVATE_APP_TOKEN`
+- Value: The HubSpot Service Key (or a supported read-only private app access token)
+- Environment: **Preview**
 
-Redeploy a **preview** after adding variables. Open the preview URL while logged into Vercel. Click **Load from HubSpot** > **Refresh list**, enter the application access key, select a published form, select a submission, and click **Fill intake**. Always confirm state, rates, client email, scheduling phases and holiday premiums before exporting.
+Never paste the key into GitHub, this document, or ChatGPT. The Service Key must have the read scope accepted by the HubSpot form submissions endpoint. Once saved, create a **new Preview deployment** so the key is available at runtime.
 
-The browser sends its short-lived application access key to the project's same-origin \`/api/submissions\` endpoint. Vercel alone sends the HubSpot Bearer token to the allowlisted HubSpot endpoint. The API disallows writes, does not cache form data, and never returns the HubSpot token. **This is user-initiated retrieval**, not an automatic background sync or webhook.
+After moving the credential, remove the Quote Builder-specific credentials from the Opportunity Agent project if they were not previously used there. Remove the old `QUOTE_ADMIN_KEY` as it is no longer used in this app.
 
-## Tests
+## HubSpot form allowlist
 
-- \`npm install --no-package-lock\`
-- \`npm run test\` — 10 deterministic quote-engine tests plus protected API tests
-- \`npx playwright install chromium\`
-- \`npm run test:exports\` — opens the app in Chromium and validates PDF text and spreadsheet formulas, including the $8,188 June 2027 Florida regression fixture.
+- `2026` — `2c971242-d2df-4eaa-8acd-7a9b89eeddca`
+- `2025` — `49e1ff28-3101-42db-91a3-8230d0587788`
 
-GitHub Actions runs these tests for recovery branch pushes and pull requests. Require a passing check before merging \`main\`.
+HubSpot is the source of truth for the intake and client data. New quotes remain drafts until reviewed.
 
-## Publication safety
+## Functional test after credential is placed
 
-- Production presently uses an October 8 standalone upload. Keep it unchanged until this review branch is tested and previewed.
-- GitHub branch must be merged to \`main\` only after validation. In GitHub Settings > Branches/Rulesets, restrict direct pushes and require the Quote Builder Regression check if available under the account's plan.
-- Preserve production alias and Vercel Authentication. Do not grant anonymous access because this app can process contact information.
-- **Logo recovery:** original deployment contains \`logo.png\` and \`logo-sheet.png\`, but this branch temporarily references the production logo URL in its HTML. Bundle verified images before final cutover. The browser suite uses a fixture logo and does not certify branding pixels.
-- The generator currently stores manually saved drafts in browser localStorage, not in HubSpot or shared storage.
-- Review UI layout and exports using the approved 2026/2027 quote samples, including schedule dates, multi-pool shifts, invoice timing, holiday billing, and long season multi-page PDFs.
+1. Log in to the protected Quote Builder Preview with a Vercel account that has permission to view the project.
+2. Click **Load from HubSpot → Refresh list**. No shared admin key is needed.
+3. Select the 2026 form and a known submission. Verify name, contact, city, state, ZIP, pool count, dates, schedule and $38/hr Florida rate ($28/hr elsewhere).
+4. Repeat with an actual 2025 submission.
+5. Generate Attachment A and Attachment B in PDF and XLSX, compare each to an approved client schedule, and verify invoice reconciliation.
+6. Do not merge the branch until formatting, original brand logos and all production access controls are approved.
 
-## Blockers before production
+If `/api/submissions` returns 503, the project Preview token is missing. If HubSpot returns 401/403 upstream, verify scope or key type without publishing credentials. The legacy submissions API is due for migration to a date-based HubSpot API before its 2027 end-of-support window.
 
-1. Configuring the Vercel environment variables and confirming HubSpot token access to the legacy submissions endpoint.
-2. Validating a sample live 2026 and 2025 submission against current fields.
-3. Passing PDF/Excel export tests in CI and a human visual review of both branded attachments.
-4. Restoring logo binary assets and enforcing branch protection if supported.
+## Automated tests
 
-No production promotion or HubSpot record mutation is authorized by the review branch.
+```bash
+npm install --no-audit --no-fund --no-package-lock
+npm run test
+npx playwright install chromium
+npm run test:exports
+```
+
+CI validates server-side restrictions, rates, schedule overlap checks, PDF content and Excel formulas. Those tests cannot substitute for a live HubSpot request or for human visual sign-off.

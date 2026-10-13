@@ -1,0 +1,17 @@
+{
+  "name": "pyramid-quote-builder",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/quote-engine.test.mjs",
+    "test:exports": "node --test tests/export-regression.test.mjs",
+    "test:all": "npm run test && npm run test:exports"
+  },
+  "devDependencies": {
+    "playwright": "1.56.1",
+    "jspdf": "2.5.1",
+    "exceljs": "4.4.0",
+    "pdf-parse": "1.1.1"
+  }
+}

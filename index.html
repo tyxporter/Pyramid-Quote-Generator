@@ -357,7 +357,7 @@ function buildModel(s) {
   if (!s.client.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s.client.email.trim())) errors.push('Enter a valid client email address.');
   if (!s.client.state || !/^(GA|FL|TX|AL|SC|NC|TN|OH)$/.test(s.client.state.toUpperCase())) errors.push('Select the correct service state; do not assume Georgia for an unknown location.');
   if (!s.client.city || !s.client.city.trim()) errors.push('Enter the service city.');
-  if (!s.quote.quoteDate || !s.quote.validUntil || s.quote.validUntil < s.quote.quoteDate) errors.push('Enter a valid quote date and valid-until date.');
+  if (!s.quote.quoteDate || !s.quote.validUntil || s.quote.validUntil < s.quote.quoteDate) errors.push('Enter a valid quote date and expiration date.');
   if (premium < 0 || adminFee < 0 || !Number.isFinite(premium) || !Number.isFinite(adminFee)) errors.push('Additional rates/fees must be nonnegative.');
   if (Math.abs(rate * 100 - Math.round(rate * 100)) > 1e-8) errors.push('Rate must have at most two decimal places.');
   if (!(rate > 0)) errors.push('Hourly rate must be more than $0.');
